@@ -143,23 +143,25 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        var userManager = services.GetRequiredService<UserManager<User>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
-        var data =  services.GetRequiredService<DataContext>();
-        await Seed.SeedAdmin(userManager, roleManager);
-        await Seed.SeedRole(roleManager);
+        var data = services.GetRequiredService<DataContext>();
         await data.Database.MigrateAsync();
+
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+        await Seed.SeedRole(roleManager);
+
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        await Seed.SeedAdmin(userManager, roleManager);
     }
-    catch
+    catch (Exception ex)
     {
-        //
+        Log.Error(ex, "Database migration or seeding failed on startup");
     }
 }
 app.Run();
