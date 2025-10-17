@@ -1,5 +1,4 @@
 using System.Text;
-
 using Domain.Entities;
 using Infrastructure.Data.Seeder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -20,25 +19,22 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ✅ Serilog Configuration
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(
-        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Debug)
-    .WriteTo.File(
-        "logs/log-.txt",
-        rollingInterval: RollingInterval.Day,
+    .WriteTo.Console(restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Debug)
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day,
         restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
     .Enrich.FromLogContext()
-    .MinimumLevel.Debug() 
+    .MinimumLevel.Debug()
     .CreateLogger();
 
-
+// ✅ Database
 builder.Services.AddDbContext<DataContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-
 builder.Services.AddScoped<DataContext>();
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
+// ✅ Services
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -47,11 +43,10 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<IReviewsRatings, ReviewsRatings>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IFileStorage>(
-    sp => new FileStorage(builder.Environment.ContentRootPath));
-
+builder.Services.AddScoped<IFileStorage>(sp => new FileStorage(builder.Environment.ContentRootPath));
 builder.Services.AddHttpContextAccessor();
 
+// ✅ Identity
 builder.Services
     .AddIdentityCore<User>(opt =>
     {
@@ -68,9 +63,10 @@ builder.Services
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 
+// ✅ Swagger configuration (бо JWT auth)
 builder.Services.AddSwaggerGen(opt =>
 {
-    opt.SwaggerDoc("v1", new() { Title = "ByteBazaar API", Version = "v1" });
+    opt.SwaggerDoc("v1", new() { Title = "Market API", Version = "v1" });
     var scheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -93,7 +89,7 @@ builder.Services.AddSwaggerGen(opt =>
     });
 });
 
-// JWT Auth
+// ✅ JWT Auth
 var jwt = builder.Configuration.GetSection("JWT");
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
 
@@ -111,42 +107,40 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization(opt => { opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin")); });
-
-
-
+builder.Services.AddAuthorization(opt => opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin")));
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// ✅ CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
     });
 });
 
-
-
 var app = builder.Build();
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Market API v1");
-        c.RoutePrefix = string.Empty;
-    });
-}
 
+// ✅ Swagger — ҳамеша фаъол бошад
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Market API v1");
+    c.RoutePrefix = "swagger"; // URL: /swagger/index.html
+});
+
+// ✅ Order of middlewares
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseHttpsRedirection();
+
+// ❌ Хомӯш мекунем HTTPS redirect, зеро server бе SSL аст
+// app.UseHttpsRedirection();
+
 app.MapControllers();
+
+// ✅ Database Migration ва Seed
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -166,4 +160,5 @@ using (var scope = app.Services.CreateScope())
         Log.Error(ex, "Database migration or seeding failed on startup");
     }
 }
+
 app.Run();
