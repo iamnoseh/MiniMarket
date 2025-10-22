@@ -4,7 +4,7 @@ using Infrastructure.Data.Seeder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Domain.DTOs.EmailDto;
 using Infrastructure.Data;
-using Infrastructure.ExtensionMethod;
+using Infrastructure.ExtensionMethods;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces;
 using Infrastructure.Interfaces.IProducts___ICategories;

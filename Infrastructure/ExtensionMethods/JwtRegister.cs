@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Infrastructure.ExtensionMethod;
+namespace Infrastructure.ExtensionMethods;
 
 public static class JwtRegister
 {

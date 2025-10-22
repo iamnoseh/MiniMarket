@@ -3,7 +3,7 @@ using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Infrastructure.ExtensionMethod;
+namespace Infrastructure.ExtensionMethods;
 
 public static class IdentityRegister
 {

@@ -8,7 +8,7 @@ using Infrastructure.Services.Products___Categories;
 using Infrastructure.Services.Reviews___Ratings;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Infrastructure.ExtensionMethod;
+namespace Infrastructure.ExtensionMethods;
 
 public static class ServiceRegister
 {

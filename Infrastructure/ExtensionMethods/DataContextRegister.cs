@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Infrastructure.ExtensionMethod;
+namespace Infrastructure.ExtensionMethods;
 
 public static class DataContextRegister
 {

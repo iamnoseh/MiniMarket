@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Infrastructure.ExtensionMethod;
+namespace Infrastructure.ExtensionMethods;
 
 public static class SwaggerRegister
 {
