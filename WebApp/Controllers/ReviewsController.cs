@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebApp.Controllers;
 [ApiController]
 [Route("api/[controller]")]
-public class ReviewsController(IReviewsRatings service): Controller
+public class ReviewsController(IReviewsService service): Controller
 {
     [HttpPost]
     [Authorize(Roles = "Admin,Customer")]

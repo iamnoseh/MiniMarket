@@ -10,7 +10,7 @@ using Serilog;
 
 namespace Infrastructure.Services.Reviews___Ratings;
 
-public class ReviewsRatings(DataContext context) : IReviewsRatings
+public class ReviewsService(DataContext context) : IReviewsService
 {
     public async Task<Responce<string>> AddReview(CreateReviewDto dto)
     {

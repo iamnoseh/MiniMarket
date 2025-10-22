@@ -3,7 +3,7 @@ using Domain.Responces;
 
 namespace Infrastructure.Interfaces.Reviews___Ratings;
 
-public interface IReviewsRatings
+public interface IReviewsService
 {
     Task<Responce<string>> AddReview(CreateReviewDto dto);
     Task<Responce<string>> UpdateReview(UpdateReviewDto dto);
