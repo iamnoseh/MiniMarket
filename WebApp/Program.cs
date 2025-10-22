@@ -4,6 +4,7 @@ using Infrastructure.Data.Seeder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Domain.DTOs.EmailDto;
 using Infrastructure.Data;
+using Infrastructure.ExtensionMethod;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces;
 using Infrastructure.Interfaces.IProducts___ICategories;
@@ -29,83 +30,25 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 // ✅ Database
-builder.Services.AddDbContext<DataContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<DataContext>();
+builder.Services.RegisterDataContext(builder.Configuration);
 
 // ✅ Services
+builder.Services.RegisterService();
+
+
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<IOrderItemService, OrderItemService>();
-builder.Services.AddScoped<IReviewsService, ReviewsService>();
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFileStorage>(sp => new FileStorage(builder.Environment.ContentRootPath));
+
 builder.Services.AddHttpContextAccessor();
 
 // ✅ Identity
-builder.Services
-    .AddIdentityCore<User>(opt =>
-    {
-        opt.Password.RequiredLength = 8;
-        opt.Password.RequireNonAlphanumeric = false;
-        opt.Password.RequireUppercase = false;
-        opt.Password.RequireLowercase = false;
-        opt.Password.RequireDigit = false;
-        opt.User.RequireUniqueEmail = true;
-    })
-    .AddRoles<IdentityRole<int>>()
-    .AddEntityFrameworkStores<DataContext>()
-    .AddSignInManager();
-
-builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.RegisterIdentity();
 
 // ✅ Swagger configuration (бо JWT auth)
-builder.Services.AddSwaggerGen(opt =>
-{
-    opt.SwaggerDoc("v1", new() { Title = "Market API", Version = "v1" });
-    var scheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Enter JWT Bearer token"
-    };
-    opt.AddSecurityDefinition("Bearer", scheme);
-    opt.AddSecurityRequirement(new()
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new() { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" }
-            },
-            new List<string>()
-        }
-    });
-});
+builder.Services.RegisterSwagger();
 
 // ✅ JWT Auth
-var jwt = builder.Configuration.GetSection("JWT");
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(opt =>
-    {
-        opt.RequireHttpsMetadata = false;
-        opt.SaveToken = true;
-        opt.TokenValidationParameters = new()
-        {
-            ValidIssuer = jwt["Issuer"],
-            ValidAudience = jwt["Audience"],
-            IssuerSigningKey = signingKey,
-            ClockSkew = TimeSpan.FromMinutes(1)
-        };
-    });
+builder.Services.RegisterJwt(builder.Configuration);
 
 builder.Services.AddAuthorization(opt => opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin")));
 builder.Services.AddControllers();
