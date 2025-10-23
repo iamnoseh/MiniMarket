@@ -1,21 +1,11 @@
-using System.Text;
 using Domain.Entities;
 using Infrastructure.Data.Seeder;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Domain.DTOs.EmailDto;
 using Infrastructure.Data;
 using Infrastructure.ExtensionMethods;
 using Infrastructure.FileStorage;
-using Infrastructure.Interfaces;
-using Infrastructure.Interfaces.IProducts___ICategories;
-using Infrastructure.Interfaces.Reviews___Ratings;
-using Infrastructure.Services;
-using Infrastructure.Services.EmailServices;
-using Infrastructure.Services.Products___Categories;
-using Infrastructure.Services.Reviews___Ratings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);

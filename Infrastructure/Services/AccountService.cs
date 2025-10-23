@@ -29,9 +29,9 @@ namespace Infrastructure.Services
                 var existingUser = await userManager.FindByNameAsync(register.UserName);
                 if (existingUser != null)
                     return new Responce<string>(HttpStatusCode.BadRequest, "User already exists");
-                var existingEmail = await userManager.FindByEmailAsync(register.Email);
-                if (existingEmail != null)
-                    return new Responce<string>(HttpStatusCode.BadRequest, "Email already exists");
+                // var existingEmail = await userManager.FindByEmailAsync(register.Email);
+                // if (existingEmail != null)
+                //     return new Responce<string>(HttpStatusCode.BadRequest, "Email already exists");
                 var user = new User
                 {
                     FullName = register.FullName,

@@ -13,4 +13,5 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
     public DbSet<Order> Orders{get;set;}
     public DbSet<Category> Categories{get;set;}
     public DbSet<CartItem> CartItems { get; set; }
+    
 }
