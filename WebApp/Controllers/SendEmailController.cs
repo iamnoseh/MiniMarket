@@ -1,7 +1,6 @@
 ﻿
 using Domain.DTOs.EmailDto;
 using Infrastructure.Interfaces;
-using Infrastructure.Services.EmailServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

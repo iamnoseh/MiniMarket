@@ -5,11 +5,11 @@ using Domain.Filters;
 using Domain.Responces;
 using Infrastructure.Data;
 using Infrastructure.FileStorage;
-using Infrastructure.Interfaces.IProducts___ICategories;
+using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace Infrastructure.Services.Products___Categories;
+namespace Infrastructure.Services;
 
 public class ProductService(DataContext context, 
     IFileStorage file) : IProductService

@@ -1,8 +1,9 @@
 ﻿using Domain.DTOs.EmailDto;
 using Infrastructure.Helpers;
+using Infrastructure.Interfaces;
 using Microsoft.Extensions.Options;
 
-namespace Infrastructure.Services.EmailServices;
+namespace Infrastructure.Services;
 
 public class EmailService(IOptions<EmailSettings> options):IEmailService
 {

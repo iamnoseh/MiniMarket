@@ -4,11 +4,11 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.Responces;
 using Infrastructure.Data;
-using Infrastructure.Interfaces.Reviews___Ratings; 
-using Microsoft.EntityFrameworkCore; 
+using Infrastructure.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace Infrastructure.Services.Reviews___Ratings;
+namespace Infrastructure.Services;
 
 public class ReviewsService(DataContext context) : IReviewsService
 {

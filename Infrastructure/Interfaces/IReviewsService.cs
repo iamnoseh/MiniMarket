@@ -1,7 +1,7 @@
 ﻿using Domain.DTOs.ReviewDto;
 using Domain.Responces;
 
-namespace Infrastructure.Interfaces.Reviews___Ratings;
+namespace Infrastructure.Interfaces;
 
 public interface IReviewsService
 {

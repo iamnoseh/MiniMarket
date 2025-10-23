@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Security.Claims;
 using Domain.DTOs.Account;
 using Domain.DTOs.EmailDto;
 using Domain.Entities;
@@ -6,7 +7,6 @@ using Domain.Responces;
 using Infrastructure.FileStorage;
 using Infrastructure.Helpers;
 using Infrastructure.Interfaces;
-using Infrastructure.Services.EmailServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -93,23 +93,28 @@ namespace Infrastructure.Services
             try
             {
                 Log.Information("Changing password");
-                var userClaims = httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value
-                                 ?? httpContextAccessor.HttpContext?.User.FindFirst("NameId")?.Value;
-                var userId = int.TryParse(userClaims, out var id);
 
-                var user = userManager.Users.FirstOrDefault(x => x.Id == id);
+                var userClaims = httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value
+                                 ?? httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!int.TryParse(userClaims, out var userId))
+                    return new Responce<string>(HttpStatusCode.Unauthorized, "User is not authorized");
+
+                var user = await userManager.FindByIdAsync(userId.ToString());
                 if (user == null)
-                    return new Responce<string>(HttpStatusCode.BadRequest, "Something went wrong");
-                var res = await userManager.ChangePasswordAsync(user, changePassword.OldPassword,
-                    changePassword.Password);
-                if (!res.Succeeded) return new Responce<string>(HttpStatusCode.OK, "Your password not changed");
-                return new Responce<string>(HttpStatusCode.OK, "Your password has been changed");
+                    return new Responce<string>(HttpStatusCode.BadRequest, "User not found");
+
+                var res = await userManager.ChangePasswordAsync(user, changePassword.OldPassword, changePassword.Password);
+
+                if (!res.Succeeded)
+                    return new Responce<string>(HttpStatusCode.BadRequest, "Password not changed");
+                
+                return new Responce<string>(HttpStatusCode.OK, "Password has been successfully changed");
             }
             catch (Exception ex)
             {
                 Log.Error("Error in ChangePassword");
-                return new Responce<string>(HttpStatusCode.InternalServerError,
-                    $"Хатогӣ ҳангоми ивазкунии рамз: {ex.Message}");
+                return new Responce<string>(HttpStatusCode.InternalServerError,ex.Message);
             }
         }
     }

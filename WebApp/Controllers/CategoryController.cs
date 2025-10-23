@@ -1,5 +1,5 @@
 ﻿using Domain.DTOs.CategoryDto;
-using Infrastructure.Interfaces.IProducts___ICategories;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
  

@@ -1,7 +1,7 @@
 ﻿using Domain.DTOs.CategoryDto;
 using Domain.Responces;
 
-namespace Infrastructure.Interfaces.IProducts___ICategories;
+namespace Infrastructure.Interfaces;
 
 public interface ICategoryService
 {

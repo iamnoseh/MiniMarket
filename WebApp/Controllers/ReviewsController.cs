@@ -1,5 +1,5 @@
 ﻿using Domain.DTOs.ReviewDto;
-using Infrastructure.Interfaces.Reviews___Ratings;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

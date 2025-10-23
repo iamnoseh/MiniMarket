@@ -1,6 +1,6 @@
 ﻿using Domain.DTOs.EmailDto;
 
-namespace Infrastructure.Services.EmailServices;
+namespace Infrastructure.Interfaces;
 
 public interface IEmailService
 {

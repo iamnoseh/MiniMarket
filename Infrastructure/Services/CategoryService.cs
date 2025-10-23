@@ -2,12 +2,12 @@
 using Domain.DTOs.CategoryDto;
 using Domain.Entities;
 using Domain.Responces;
-using Infrastructure.Data; 
-using Infrastructure.Interfaces.IProducts___ICategories;
+using Infrastructure.Data;
+using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace Infrastructure.Services.Products___Categories;
+namespace Infrastructure.Services;
 
 public class CategoryService(DataContext context) : ICategoryService
 {
