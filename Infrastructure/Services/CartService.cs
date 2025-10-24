@@ -59,7 +59,7 @@ public class CartService(DataContext context,
     }
     catch (Exception e)
     {
-        Log.Error("Error in AddToCart: " + e.Message);
+        Log.Error("Error in AddToCart");
         return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
     }
 }
