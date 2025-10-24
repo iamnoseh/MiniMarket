@@ -28,17 +28,17 @@ public class CartController(ICartService service):Controller
 
     [HttpDelete]
     [Authorize(Roles = "Admin,Customer")]
-    public async Task<IActionResult> DeleteCart(int id)
+    public async Task<IActionResult> DeleteCart()
     {
-        var res = await service.DeleteCart(id);
+        var res = await service.DeleteCart();
         return Ok(res);
     }
 
     [HttpGet]
     [Authorize(Roles = "Admin,Customer")]
-    public async Task<IActionResult> GetCart(int userId)
+    public async Task<IActionResult> GetCart()
     {
-        var res = await service.GetCartItem(userId);
+        var res = await service.GetCartItem();
         return Ok(res);
     }
 }
