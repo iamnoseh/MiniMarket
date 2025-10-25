@@ -13,6 +13,10 @@ public class AccountController(IAccountService service) : ControllerBase
     public async Task<IActionResult> Register([FromForm] Register request)
     {
         var res = await service.Register(request);
+        if (res.StatusCode != 200)
+        {
+            return BadRequest(res);
+        }
         return Ok(res);
     }
 
@@ -21,6 +25,10 @@ public class AccountController(IAccountService service) : ControllerBase
     public async Task<IActionResult> Login([FromBody]LoginDto request)
     {
         var res = await service.Login(request);
+        if (res.StatusCode != 200)
+        {
+            return BadRequest(res);
+        }
         return Ok(res);
     }
 
@@ -29,6 +37,10 @@ public class AccountController(IAccountService service) : ControllerBase
     public async Task<IActionResult> ChangePassword([FromBody] ChangePassword changePasswordDto)
     {
         var res = await service.ChangePassword(changePasswordDto);
+        if (res.StatusCode != 200)
+        {
+            return BadRequest(res);
+        }
         return Ok(res);
     }
 }

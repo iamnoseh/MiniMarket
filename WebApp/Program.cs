@@ -81,10 +81,8 @@ using (var scope = app.Services.CreateScope())
     {
         var data = services.GetRequiredService<DataContext>();
         await data.Database.MigrateAsync();
-
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
         await Seed.SeedRole(roleManager);
-
         var userManager = services.GetRequiredService<UserManager<User>>();
         await Seed.SeedAdmin(userManager, roleManager);
     }

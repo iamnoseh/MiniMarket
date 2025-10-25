@@ -23,7 +23,11 @@ public class CartController(ICartService service):Controller
     public async Task<IActionResult> UpdateCartItem(UpdateCartItemDto dto)
     {
         var res = await service.UpdateCart(dto);
-        return Ok(res);
+        if (res.StatusCode != 200)
+        {
+            return BadRequest();
+        }
+        return Ok();
     }
 
     [HttpDelete]

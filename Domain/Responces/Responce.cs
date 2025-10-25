@@ -7,7 +7,6 @@ public class Responce<T>
     public T? Data{get;set;}
     public string Message{get;set;}
     public int StatusCode{get;set;}
-
     public Responce(T data)
     {
         Data = data;

@@ -19,7 +19,6 @@ public class CartService(DataContext context,
     try
     {
         Log.Information("Adding to cart");
-
         var userClaims = httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value
                          ?? httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -28,7 +27,7 @@ public class CartService(DataContext context,
 
         if (create.Quantity < 1)
             return new Responce<string>(HttpStatusCode.BadRequest, "Quantity must be greater than 0");
-
+        
         var cartItem = await context.CartItems.FirstOrDefaultAsync(
             x => x.UserId == userId && x.ProductId == create.ProductId);
 
@@ -75,7 +74,7 @@ public class CartService(DataContext context,
             if (!int.TryParse(userClaims, out var userId))
                 return new Responce<string>(HttpStatusCode.Unauthorized, "User is not authorized");
             
-            var updatedCart = await context.CartItems.FirstOrDefaultAsync(x => x.UserId == userId);
+            var updatedCart = await context.CartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == update.ProductId);
             if (updatedCart == null) return new Responce<string>(HttpStatusCode.NotFound, "CartItem not found");
             updatedCart.Quantity = update.Quantity;
             updatedCart.UpdatedAt = DateTime.UtcNow;

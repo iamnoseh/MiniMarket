@@ -77,7 +77,7 @@ namespace Infrastructure.Services
                     return new Responce<string>(HttpStatusCode.NotFound, "Номи корбар ё рамз нодуруст аст");
                 var isPasswordValid = await userManager.CheckPasswordAsync(user, login.Password);
                 if (!isPasswordValid)
-                    return new Responce<string>(HttpStatusCode.Unauthorized, "Номи корбар ё рамз нодуруст аст");
+                    return new Responce<string>(HttpStatusCode.BadRequest, "Номи корбар ё рамз нодуруст аст");
                 var token = await GenerateJwtTokenHelper.GenerateJwtToken(user, userManager, configuration);
                 return new Responce<string>(token) { Message = "Воридшавӣ бо муваффақият анҷом ёфт" };
             }
