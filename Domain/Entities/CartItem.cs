@@ -1,6 +1,6 @@
 ﻿namespace Domain.Entities;
 
-public class CartItem:BaseEntities
+public class CartItem : BaseEntities
 {
     public int Id { get; set; }
     public int UserId { get; set; }

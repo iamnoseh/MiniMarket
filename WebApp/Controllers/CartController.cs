@@ -28,9 +28,9 @@ public class CartController(ICartService service):Controller
 
     [HttpDelete]
     [Authorize(Roles = "Admin,Customer")]
-    public async Task<IActionResult> DeleteCart()
+    public async Task<IActionResult> DeleteCart(int id)
     {
-        var res = await service.DeleteCart();
+        var res = await service.DeleteCart(id);
         return Ok(res);
     }
 

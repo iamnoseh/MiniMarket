@@ -98,7 +98,7 @@ public class CartService(DataContext context,
         }
     }
 
-    public async Task<Responce<string>> DeleteCart()
+    public async Task<Responce<string>> DeleteCart(int id)
     {
         try
         {
@@ -109,7 +109,7 @@ public class CartService(DataContext context,
             if (!int.TryParse(userClaims, out var userId))
                 return new Responce<string>(HttpStatusCode.Unauthorized, "User is not authorized");
             
-            var deletedCart = await context.CartItems.FirstOrDefaultAsync(x => x.UserId == userId);
+            var deletedCart = await context.CartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == id);
             
             if (deletedCart == null) return new Responce<string>(HttpStatusCode.NotFound, "CartItem not found");
             context.CartItems.Remove(deletedCart);
