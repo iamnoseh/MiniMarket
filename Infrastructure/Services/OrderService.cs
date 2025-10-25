@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Domain.DTOs.OrderDto;
+using Domain.DTOs.OrderItemDto;
 using Domain.Entities;
 using Domain.Filters;
 using Domain.Responces;
@@ -120,16 +121,11 @@ public class OrderService(DataContext context): IOrderService
             var dtos = orders.Select(x=>  new GetOrderDto()
             {
                 Id = x.Id,
+                UserId = x.UserId,
                 Address = x.Address,
                 PaymentMethod = x.PaymentMethod,
                 Status = x.Status,
                 TotalAmount = x.TotalAmount,
-                OrderItems = x.OrderItems.Select(oi => new OrderItemFilter()
-                {
-                    ProductId = oi.ProductId,
-                    Quantity = oi.Quantity,
-                    Price = oi.Price,
-                }).ToList(),
                 OrderDate = x.OrderDate,
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt,
@@ -160,8 +156,10 @@ public class OrderService(DataContext context): IOrderService
                 PaymentMethod = x.PaymentMethod,
                 Status = x.Status,
                 TotalAmount = x.OrderItems.Sum(oi => oi.Price),
-                OrderItems = x.OrderItems.Select(oi => new OrderItemFilter()
+                OrderItems = x.OrderItems.Select(oi => new GetOrderItemDto()
                 {
+                    Id = oi.Id,
+                    OrderId = oi.OrderId,
                     ProductId = oi.ProductId,
                     Quantity = oi.Quantity,
                     Price = oi.Price,
@@ -196,8 +194,10 @@ public class OrderService(DataContext context): IOrderService
                 PaymentMethod = order.PaymentMethod,
                 Status = order.Status,
                 TotalAmount = order.OrderItems.Sum(oi => oi.Price),
-                OrderItems = order.OrderItems.Select(oi => new OrderItemFilter()
+                OrderItems = order.OrderItems.Select(oi => new GetOrderItemDto()
                 {
+                    Id = oi.Id,
+                    OrderId = oi.OrderId,
                     ProductId = oi.ProductId,
                     Quantity = oi.Quantity,
                     Price = oi.Price,

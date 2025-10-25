@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+﻿using Domain.DTOs.OrderItemDto;
 using Domain.Enums;
 
 namespace Domain.DTOs.OrderDto;
@@ -14,5 +14,5 @@ public class GetOrderDto:UpdateOrderDto
     public PaymentMethod PaymentMethod {get;set;}
     public DateTime CreatedAt{get;set;}
     public DateTime UpdatedAt{get;set;}
-    public List<Filters.OrderItemFilter> OrderItems { get; set; }
+    public List<GetOrderItemDto>? OrderItems { get; set; }
 }
