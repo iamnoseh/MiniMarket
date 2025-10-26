@@ -80,6 +80,7 @@ public class ReviewsService(DataContext context) : IReviewsService
             var  review = await context.Reviews.FirstOrDefaultAsync(x => x.UserId == dto.UserId && x.ProductId == dto.ProductId);
             if (review == null) return new Responce<string>(HttpStatusCode.NotFound,"Review not found");
             review.Comment = dto.Comment;
+            review.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
             if (res > 0)
             {

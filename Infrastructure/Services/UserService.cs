@@ -33,6 +33,7 @@ public class UserService(DataContext context,
             update.Age = user.Age;
             update.Address = user.Address;
             update.PhoneNumber = user.PhoneNumber;
+            update.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
             if (res > 0)
             {

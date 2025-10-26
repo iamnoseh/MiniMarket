@@ -20,6 +20,9 @@ public class OrderService(DataContext context): IOrderService
             Log.Information("Creating order");
             var cartItem =  context.CartItems
                 .Where(c => c.UserId == create.UserId);
+            var cartItems = context.CartItems
+                .Where(c => c.UserId == create.UserId);
+            
             if(!cartItem.Any()) return new Responce<string>(HttpStatusCode.BadRequest,"CartItems not found");
             var order = new Order()
             {
@@ -28,6 +31,7 @@ public class OrderService(DataContext context): IOrderService
                 Status = create.Status,
                 Address = create.Address,
                 PaymentMethod = create.PaymentMethod,
+                TotalAmount = cartItems.Sum(c => c.Product!.Price * c.Quantity)
             };
             await context.Orders.AddAsync(order);
             var res = await context.SaveChangesAsync();
@@ -58,6 +62,7 @@ public class OrderService(DataContext context): IOrderService
             var update1 = await context.Orders.FirstOrDefaultAsync(x => x.Id == update.Id);
             if (update1 == null) return new Responce<string>(HttpStatusCode.NotFound, "Order not found");
             update1.Status = update.Status;
+            update1.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
             if (res > 0)
             { 

@@ -19,6 +19,7 @@ public class CategoryService(DataContext context) : ICategoryService
             var update = await context.Categories.FirstOrDefaultAsync(c => c.Id == dto.Id);
             if(update ==  null) return new Responce<string>(HttpStatusCode.NotFound,"Category not found");
             update.Name = dto.Name;
+            update.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK,"Category updated")

@@ -77,7 +77,6 @@ public class ProductService(DataContext context,
             product.Price = update.Price;
             product.Quantity = update.Quantity;
             product.CategoryId = update.CategoryId;
-
             product.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
             if (res > 0)
