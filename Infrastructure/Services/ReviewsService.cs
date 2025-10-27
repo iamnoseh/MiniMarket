@@ -12,65 +12,65 @@ namespace Infrastructure.Services;
 
 public class ReviewsService(DataContext context) : IReviewsService
 {
-    public async Task<Responce<string>> AddReview(CreateReviewDto dto)
+public async Task<Responce<string>> AddReview(CreateReviewDto dto)
+{
+    try
     {
-        try
+        Log.Information("Start adding review");
+        var isBuy = await context.Orders
+            .AnyAsync(o => o.UserId == dto.UserId
+                        && o.Status == Status.Delivered
+                        && o.OrderItems.Any(oi => oi.ProductId == dto.ProductId));
+        if (!isBuy)
         {
-            Log.Information("Adding review");
-            var isBuy = await context.Orders
-                .Include(o => o.OrderItems)
-                .AnyAsync(o => o.UserId == dto.UserId && o.Status == Status.Delivered
-                && o.OrderItems!.Any(oi => oi.Product!.Id == dto.ProductId));
-            if (!isBuy)
-            {
-                return new Responce<string>(HttpStatusCode.BadRequest,
-                    "Шумо ин маҳсулотро ҳоло нахаридаед.Аз ин сабаб шарҳ гузошта наметавонед!");
-            }
-            var comment = await context.Reviews.FirstOrDefaultAsync(x=>x.UserId == dto.UserId && x.ProductId == dto.ProductId);
-            if (comment != null)
-            {
-                return new Responce<string>(HttpStatusCode.BadRequest, 
-                    "Шумо алакай ба ин маҳсулот шарҳ гузоштаед!");
-            }
-            
-            var review = new Review()
-            {
-                UserId = dto.UserId,
-                ProductId = dto.ProductId,
-                Comment = dto.Comment,
-                Rating = dto.Rating,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            await context.Reviews.AddAsync(review);
-            
-            var product = await context.Products.FirstOrDefaultAsync(x => x.Id == dto.ProductId);
-            if(product == null) return new Responce<string>(HttpStatusCode.NotFound,"Product not found");
-            product.RatingCount += 1;
-            var average = await context.Reviews
-                .Where(r=> r.ProductId == product.Id)
-                .AverageAsync(x => x.Rating);
-            product.AverageRating = average;
-            
-            var res = await context.SaveChangesAsync();
-            if (res > 0)
-            {
-                Log.Information("Adding review");
-            }
-            else
-            {
-                Log.Fatal("Adding review fail");
-            }
-            return res > 0
-                ? new Responce<string>(HttpStatusCode.OK,"Review added")
-                : new Responce<string>(HttpStatusCode.NotFound,"Review not added");
+            return new Responce<string>(HttpStatusCode.BadRequest,
+                "Шумо ин маҳсулотро нахаридаед, бинобар ин наметавонед шарҳ гузоред!");
         }
-        catch (Exception e)
+
+        var existingReview = await context.Reviews
+            .FirstOrDefaultAsync(x => x.UserId == dto.UserId && x.ProductId == dto.ProductId);
+
+        if (existingReview != null)
         {
-            Log.Error("Error in AddReview");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            return new Responce<string>(HttpStatusCode.BadRequest,
+                "Шумо аллакай ба ин маҳсулот шарҳ гузоштаед!");
         }
+
+        var review = new Review()
+        {
+            UserId = dto.UserId,
+            ProductId = dto.ProductId,
+            Comment = dto.Comment,
+            Rating = dto.Rating,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        await context.Reviews.AddAsync(review);
+        await context.SaveChangesAsync();
+
+        var product = await context.Products.FirstOrDefaultAsync(x => x.Id == dto.ProductId);
+        if (product == null)
+            return new Responce<string>(HttpStatusCode.NotFound, "Product not found");
+
+        product.RatingCount = await context.Reviews.CountAsync(r => r.ProductId == product.Id);
+        product.AverageRating = await context.Reviews
+            .Where(r => r.ProductId == product.Id)
+            .AverageAsync(r => r.Rating);
+
+        await context.SaveChangesAsync();
+
+        Log.Information("Review successfully added");
+
+        return new Responce<string>(HttpStatusCode.OK, "Review added successfully");
     }
+    catch (Exception e)
+    {
+        Log.Error("Error in AddReview: {Error}", e.Message);
+        return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+    }
+}
+
 
     public async Task<Responce<string>> UpdateReview(UpdateReviewDto dto)
     {
