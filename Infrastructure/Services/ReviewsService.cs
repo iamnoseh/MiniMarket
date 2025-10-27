@@ -66,7 +66,7 @@ public async Task<Responce<string>> AddReview(CreateReviewDto dto)
     }
     catch (Exception e)
     {
-        Log.Error("Error in AddReview: {Error}", e.Message);
+        Log.Error("Error in AddReview");
         return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
     }
 }
@@ -80,6 +80,7 @@ public async Task<Responce<string>> AddReview(CreateReviewDto dto)
             var  review = await context.Reviews.FirstOrDefaultAsync(x => x.UserId == dto.UserId && x.ProductId == dto.ProductId);
             if (review == null) return new Responce<string>(HttpStatusCode.NotFound,"Review not found");
             review.Comment = dto.Comment;
+            review.Rating = dto.Rating;
             review.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
             if (res > 0)
