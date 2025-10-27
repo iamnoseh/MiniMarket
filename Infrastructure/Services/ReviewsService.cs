@@ -82,6 +82,13 @@ public async Task<Responce<string>> AddReview(CreateReviewDto dto)
             review.Comment = dto.Comment;
             review.Rating = dto.Rating;
             review.UpdatedAt = DateTime.UtcNow;
+            var product = await context.Products.FirstOrDefaultAsync(p => p.Id == review.ProductId);
+            if (product == null)
+                return new Responce<string>(HttpStatusCode.NotFound, "Product not found");
+            product.RatingCount = await context.Reviews.CountAsync(r => r.ProductId == product.Id);
+            product.AverageRating = await context.Reviews
+                .Where(r => r.ProductId == product.Id)
+                .AverageAsync(r => r.Rating);
             var res = await context.SaveChangesAsync();
             if (res > 0)
             {
@@ -110,6 +117,14 @@ public async Task<Responce<string>> AddReview(CreateReviewDto dto)
             var review = await context.Reviews.FirstOrDefaultAsync(x => x.Id ==  reviewId);
             if (review == null) return new Responce<string>(HttpStatusCode.NotFound,"Review not found");
             context.Reviews.Remove(review);
+            var product = await context.Products.FirstOrDefaultAsync(p => p.Id == review.ProductId);
+            if (product == null)
+                return new Responce<string>(HttpStatusCode.NotFound, "Product not found");
+            product.RatingCount = await context.Reviews.CountAsync(r => r.ProductId == product.Id);
+            product.AverageRating = await context.Reviews
+                .Where(r => r.ProductId == product.Id)
+                .AverageAsync(r => r.Rating);
+            
             var res = await context.SaveChangesAsync();
             if (res > 0)
             {
