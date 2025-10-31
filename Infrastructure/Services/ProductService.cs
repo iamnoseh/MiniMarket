@@ -201,7 +201,7 @@ public class ProductService(DataContext context,
 
             if (filter.RatingCount.HasValue)
             {
-                query = query.Where(x => x.RatingCount >= filter.RatingCount);
+                query = query.Where(x => x.RatingCount == filter.RatingCount);
             }
             query = query.Where(x=> x.IsDeleted == false);
             var total = await query.CountAsync();

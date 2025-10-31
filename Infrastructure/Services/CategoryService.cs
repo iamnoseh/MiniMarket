@@ -19,6 +19,7 @@ public class CategoryService(DataContext context) : ICategoryService
             var update = await context.Categories.FirstOrDefaultAsync(c => c.Id == dto.Id);
             if(update ==  null) return new Responce<string>(HttpStatusCode.NotFound,"Category not found");
             update.Name = dto.Name;
+            update.Description = dto.Description;
             update.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
             return res > 0
@@ -60,6 +61,7 @@ public class CategoryService(DataContext context) : ICategoryService
             var newCategory = new Category()
             {
                 Name = category.Name,
+                Description = category.Description,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
             };
@@ -95,6 +97,7 @@ public class CategoryService(DataContext context) : ICategoryService
             {
                 Id = c.Id,
                 Name = c.Name,
+                Description = c.Description,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
             }).ToList();
