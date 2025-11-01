@@ -16,4 +16,5 @@ public class GetProductDto
     public DateTime UpdatedAt { get; set; }
     public decimal AverageRating { get; set; }
     public int RatingCount { get; set; }
+    public required string BrandName { get; set; }
 }

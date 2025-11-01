@@ -26,6 +26,7 @@ public class ProductService(DataContext context,
                 Price = create.Price,
                 Quantity = create.Quantity,
                 CategoryId = create.CategoryId,
+                BrandId = create.BrandId,
                 AverageRating = 0,
                 RatingCount = 0,
                 CreatedAt = DateTime.UtcNow,
@@ -132,6 +133,7 @@ public class ProductService(DataContext context,
         {
             Log.Information("Getting a product");
             var product = await context.Products
+                .Include(x=>x.Brand)
                 .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == false );
             if (product == null) return new Responce<GetProductDto>(HttpStatusCode.NotFound,"Product not found");
             var dto = new GetProductDto()
@@ -142,6 +144,7 @@ public class ProductService(DataContext context,
                 Price = product.Price,
                 Quantity = product.Quantity,
                 CategoryId = product.CategoryId,
+                BrandName = product.Brand.Name,
                 AverageRating = product.AverageRating,
                 RatingCount = product.RatingCount,
                 ImageUrl = product.ImageUrl,
@@ -163,7 +166,9 @@ public class ProductService(DataContext context,
         try
         {
             Log.Information("Getting products");
-            var query = context.Products.AsQueryable();
+            var query = context.Products
+                .Include(x=>x.Brand)
+                .AsQueryable();
             if (filter.Id.HasValue)
             {
                 query = query.Where(x => x.Id == filter.Id);
@@ -216,6 +221,7 @@ public class ProductService(DataContext context,
                 Price = x.Price,
                 Quantity = x.Quantity,
                 CategoryId = x.CategoryId,
+                BrandName = x.Brand.Name,
                 AverageRating = x.AverageRating,
                 RatingCount = x.RatingCount,
                 ImageUrl = x.ImageUrl,

@@ -19,5 +19,6 @@ public static class ServiceRegister
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<DataContext>();
+        services.AddScoped<IBrandService, BrandService>();
     }
 }

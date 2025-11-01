@@ -12,5 +12,6 @@ public class CreateProductDto
     public required decimal Price { get; set; }
     public required int Quantity { get; set; }
     public required int CategoryId { get; set; }
+    public int BrandId { get; set; }
     public IFormFile? ImageUrl { get; set; }
 }

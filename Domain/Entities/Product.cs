@@ -13,6 +13,7 @@ public class Product : BaseEntities
     public decimal Price { get; set; }
     public int Quantity { get; set; }
     public int CategoryId { get; set; }
+    public int BrandId { get; set; }
     public string? ImageUrl { get; set; }
     public decimal AverageRating { get; set; }
     public int RatingCount { get; set; }
@@ -21,4 +22,5 @@ public class Product : BaseEntities
     public List<OrderItem>? OrderItems { get; set; }
     public List<CartItem>? CartItems { get; set; }
     public Category? Category { get; set; }
+    public Brand? Brand { get; set; }
 }
