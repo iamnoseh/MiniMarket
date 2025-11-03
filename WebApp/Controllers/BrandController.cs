@@ -43,7 +43,7 @@ public class BrandController(IBrandService service) :  ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize ]
     public async Task<IActionResult> Get()
     {
         var res = await service.GetBrands();
