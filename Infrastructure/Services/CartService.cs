@@ -1,7 +1,7 @@
-﻿using System.Net;
+using System.Net;
 using Domain.DTOs.CartItemDto;
 using Domain.Entities;
-using Domain.Responces;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -51,8 +51,8 @@ public class CartService(DataContext context) : ICartService
         }
         catch (Exception e)
         {
-            Log.Error("Error in CreateCart");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in CreateCart");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -80,8 +80,8 @@ public class CartService(DataContext context) : ICartService
         }
         catch (Exception e)
         {
-            Log.Error("Error in  UpdateCart");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in UpdateCart");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -108,8 +108,8 @@ public class CartService(DataContext context) : ICartService
         }
         catch (Exception e)
         {
-            Log.Error("Error in  DeleteCart");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in DeleteCart");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -135,8 +135,8 @@ public class CartService(DataContext context) : ICartService
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetCartItem");
-            return new Responce<List<GetCartItemDto>>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in GetCartItem");
+            return new Responce<List<GetCartItemDto>>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 }

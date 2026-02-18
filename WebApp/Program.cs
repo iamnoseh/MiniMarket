@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+var env = builder.Environment;
 
 // ✅ Serilog Configuration
 Log.Logger = new LoggerConfiguration()
@@ -91,17 +92,36 @@ builder.Services.AddSwaggerGen(opt =>
 
 // ✅ JWT Auth
 var jwt = builder.Configuration.GetSection("JWT");
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
+var jwtKey = jwt["Key"];
+var jwtIssuer = jwt["Issuer"];
+var jwtAudience = jwt["Audience"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException("JWT:Key is not configured");
+}
+
+if (string.IsNullOrWhiteSpace(jwtIssuer))
+{
+    throw new InvalidOperationException("JWT:Issuer is not configured");
+}
+
+if (string.IsNullOrWhiteSpace(jwtAudience))
+{
+    throw new InvalidOperationException("JWT:Audience is not configured");
+}
+
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
-        opt.RequireHttpsMetadata = false;
+        opt.RequireHttpsMetadata = !env.IsDevelopment();
         opt.SaveToken = true;
         opt.TokenValidationParameters = new()
         {
-            ValidIssuer = jwt["Issuer"],
-            ValidAudience = jwt["Audience"],
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
             IssuerSigningKey = signingKey,
             ClockSkew = TimeSpan.FromMinutes(1)
         };
@@ -114,9 +134,24 @@ builder.Services.AddEndpointsApiExplorer();
 // ✅ CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("DefaultCors", policy =>
     {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
+        if (env.IsDevelopment() || allowedOrigins is null || allowedOrigins.Length == 0)
+        {
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+        else
+        {
+            policy
+                .WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
     });
 });
 
@@ -131,18 +166,20 @@ app.UseSwaggerUI(c =>
 });
 
 // ✅ Order of middlewares
-app.UseCors("AllowAll");
+app.UseCors("DefaultCors");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ❌ Хомӯш мекунем HTTPS redirect, зеро server бе SSL аст
-// app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.MapControllers();
 
-// ✅ Database Migration ва Seed
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     try
     {

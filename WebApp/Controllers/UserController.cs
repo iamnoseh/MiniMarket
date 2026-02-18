@@ -1,9 +1,10 @@
-﻿using Domain.DTOs.UserDto;
+using Domain.DTOs.UserDto;
 using Domain.Entities;
 using Domain.Filters;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Extensions;
 
 namespace WebApp.Controllers;
 
@@ -16,7 +17,7 @@ public class UserController(IUserService service) : Controller
     public async Task<IActionResult> Update([FromForm]UpdateUserDto dto)
     {
         var res = await service.UpdateUser(dto);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
     [HttpDelete]
@@ -24,7 +25,7 @@ public class UserController(IUserService service) : Controller
     public async Task<IActionResult> Delete(int id)
     {
         var res = await service.DeleteUser(id);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
     [HttpGet("{id}")]
@@ -32,7 +33,7 @@ public class UserController(IUserService service) : Controller
     public async Task<IActionResult> Get(int id)
     {
         var res = await service.GetUser(id);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
     
     [HttpGet]
@@ -40,6 +41,6 @@ public class UserController(IUserService service) : Controller
     public async Task<IActionResult> GetUsers([FromQuery] UserFilter filter)
     {
         var res  = await service.GetUsers(filter);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 }

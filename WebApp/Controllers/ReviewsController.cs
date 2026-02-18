@@ -1,7 +1,8 @@
-﻿using Domain.DTOs.ReviewDto;
+using Domain.DTOs.ReviewDto;
 using Infrastructure.Interfaces.Reviews___Ratings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Extensions;
 
 namespace WebApp.Controllers;
 [ApiController]
@@ -13,7 +14,7 @@ public class ReviewsController(IReviewsRatings service): Controller
     public async Task<IActionResult> CreateReview(CreateReviewDto dto)
     {
         var res = await service.AddReview(dto);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
     [HttpPut]
@@ -21,7 +22,7 @@ public class ReviewsController(IReviewsRatings service): Controller
     public async Task<IActionResult> UpdateReview(UpdateReviewDto dto)
     {
         var res = await service.UpdateReview(dto);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
     [HttpDelete]
@@ -29,7 +30,7 @@ public class ReviewsController(IReviewsRatings service): Controller
     public async Task<IActionResult> DeleteReview(int reviewId)
     {
         var res = await service.DeleteReview(reviewId);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
     
     [HttpGet("{my-reviews}")]
@@ -37,7 +38,7 @@ public class ReviewsController(IReviewsRatings service): Controller
     public async Task<IActionResult> GetReviews(int userId)
     {
         var res = await service.GetReviews(userId);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
     [HttpGet]
@@ -45,6 +46,6 @@ public class ReviewsController(IReviewsRatings service): Controller
     public async Task<IActionResult> GetAllReviews()
     {
         var res = await service.GetAllReviews();
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 }

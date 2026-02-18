@@ -1,7 +1,7 @@
-﻿using System.Net;
+using System.Net;
 using Domain.DTOs.UserDto;
 using Domain.Filters;
-using Domain.Responces;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces;
@@ -48,8 +48,8 @@ public class UserService(DataContext context,
         }
         catch (Exception e)
         {
-            Log.Error("Error in UpdateUser");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in UpdateUser");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -76,8 +76,8 @@ public class UserService(DataContext context,
         }
         catch (Exception e)
         {
-            Log.Error("Error in DeleteUser");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in DeleteUser");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -104,8 +104,8 @@ public class UserService(DataContext context,
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetUser");
-            return new Responce<GetUserDto>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in GetUser");
+            return new Responce<GetUserDto>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -160,8 +160,8 @@ public class UserService(DataContext context,
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetUsers");
-            return new PaginationResponce<List<GetUserDto>>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in GetUsers");
+            return new PaginationResponce<List<GetUserDto>>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 }

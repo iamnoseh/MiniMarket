@@ -1,7 +1,7 @@
-﻿using System.Net;
+using System.Net;
 using Domain.DTOs.CategoryDto;
 using Domain.Entities;
-using Domain.Responces;
+using Domain.Responses;
 using Infrastructure.Data; 
 using Infrastructure.Interfaces.IProducts___ICategories;
 using Microsoft.EntityFrameworkCore;
@@ -26,8 +26,8 @@ public class CategoryService(DataContext context) : ICategoryService
         }
         catch (Exception e)
         {
-            Log.Error("Error updating Category");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error updating Category");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -46,8 +46,8 @@ public class CategoryService(DataContext context) : ICategoryService
         }
         catch (Exception e)
         {
-            Log.Error("Error deleting Category");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error deleting Category");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -78,8 +78,8 @@ public class CategoryService(DataContext context) : ICategoryService
         }
         catch (Exception e)
         {
-            Log.Error("Error in CreateCategory");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in CreateCategory");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -101,8 +101,8 @@ public class CategoryService(DataContext context) : ICategoryService
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetCategory");
-            return new Responce<List<GetCategoryDto>>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in GetCategory");
+            return new Responce<List<GetCategoryDto>>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 }

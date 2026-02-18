@@ -1,5 +1,5 @@
-﻿using Domain.DTOs.CategoryDto;
-using Domain.Responces;
+using Domain.DTOs.CategoryDto;
+using Domain.Responses;
 
 namespace Infrastructure.Interfaces.IProducts___ICategories;
 

@@ -1,8 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using Domain.DTOs.Account;
 using Domain.DTOs.EmailDto;
 using Domain.Entities;
-using Domain.Responces;
+using Domain.Responses;
 using Infrastructure.FileStorage;
 using Infrastructure.Helpers;
 using Infrastructure.Interfaces;
@@ -62,8 +62,8 @@ namespace Infrastructure.Services
             }
             catch (Exception e)
             {
-                Log.Error("Error in Register");
-                return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+                Log.Error(e, "Error in Register");
+                return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
             }
         }
 
@@ -83,8 +83,8 @@ namespace Infrastructure.Services
             }
             catch (Exception e)
             {
-                Log.Error("Error in Login");
-                return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+                Log.Error(e, "Error in Login");
+                return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
             }
         }
 
@@ -107,9 +107,9 @@ namespace Infrastructure.Services
             }
             catch (Exception ex)
             {
-                Log.Error("Error in ChangePassword");
+                Log.Error(ex, "Error in ChangePassword");
                 return new Responce<string>(HttpStatusCode.InternalServerError,
-                    $"Хатогӣ ҳангоми ивазкунии рамз: {ex.Message}");
+                    "Хатогӣ ҳангоми ивазкунии рамз");
             }
         }
     }

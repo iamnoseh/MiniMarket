@@ -1,8 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using Domain.DTOs.ProductDto;
 using Domain.Entities;
 using Domain.Filters;
-using Domain.Responces;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces.IProducts___ICategories;
@@ -52,8 +52,8 @@ public class ProductService(DataContext context,
         }
         catch (Exception e)
         {
-            Log.Error("Error in CreateProduct");
-            return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in CreateProduct");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -94,8 +94,8 @@ public class ProductService(DataContext context,
         }
         catch (Exception e)
         {
-            Log.Error("Error in UpdateProduct");
-            return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in UpdateProduct");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -122,8 +122,8 @@ public class ProductService(DataContext context,
         }
         catch (Exception e)
         {
-            Log.Error("Error in DeleteProduct");
-            return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in DeleteProduct");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -154,8 +154,8 @@ public class ProductService(DataContext context,
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetProductById");
-            return new Responce<GetProductDto>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in GetProductById");
+            return new Responce<GetProductDto>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -227,8 +227,8 @@ public class ProductService(DataContext context,
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetProducts");
-            return new PaginationResponce<List<GetProductDto>>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in GetProducts");
+            return new PaginationResponce<List<GetProductDto>>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 }

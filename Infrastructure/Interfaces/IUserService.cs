@@ -1,7 +1,7 @@
-﻿using Domain.DTOs.UserDto;
+using Domain.DTOs.UserDto;
 using Domain.Entities;
 using Domain.Filters;
-using Domain.Responces;
+using Domain.Responses;
 
 namespace Infrastructure.Interfaces;
 

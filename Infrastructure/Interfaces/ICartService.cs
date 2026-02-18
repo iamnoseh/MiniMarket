@@ -1,5 +1,5 @@
-﻿using Domain.DTOs.CartItemDto;
-using Domain.Responces;
+using Domain.DTOs.CartItemDto;
+using Domain.Responses;
 
 namespace Infrastructure.Interfaces;
 

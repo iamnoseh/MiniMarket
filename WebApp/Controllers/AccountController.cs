@@ -1,7 +1,8 @@
-﻿using Domain.DTOs.Account;
+using Domain.DTOs.Account;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Extensions;
 
 namespace WebApp.Controllers;
 
@@ -13,7 +14,7 @@ public class AccountController(IAccountService service) : ControllerBase
     public async Task<IActionResult> Register([FromForm] Register request)
     {
         var res = await service.Register(request);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
 
@@ -21,7 +22,7 @@ public class AccountController(IAccountService service) : ControllerBase
     public async Task<IActionResult> Login([FromBody]LoginDto request)
     {
         var res = await service.Login(request);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
     [HttpPut("change-password")]
@@ -29,6 +30,6 @@ public class AccountController(IAccountService service) : ControllerBase
     public async Task<IActionResult> ChangePassword([FromBody] ChangePassword changePasswordDto)
     {
         var res = await service.ChangePassword(changePasswordDto);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 }

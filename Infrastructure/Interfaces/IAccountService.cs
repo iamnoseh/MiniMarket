@@ -1,5 +1,5 @@
-﻿using Domain.DTOs.Account;
-using Domain.Responces;
+using Domain.DTOs.Account;
+using Domain.Responses;
 
 namespace Infrastructure.Interfaces;
 

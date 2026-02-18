@@ -1,8 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using Domain.DTOs.ReviewDto;
 using Domain.Entities;
 using Domain.Enums;
-using Domain.Responces;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces.Reviews___Ratings; 
 using Microsoft.EntityFrameworkCore; 
@@ -67,8 +67,8 @@ public class ReviewsRatings(DataContext context) : IReviewsRatings
         }
         catch (Exception e)
         {
-            Log.Error("Error in AddReview");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in AddReview");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -95,8 +95,8 @@ public class ReviewsRatings(DataContext context) : IReviewsRatings
         }
         catch (Exception e)
         {
-            Log.Error("Error in UpdateReview");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in UpdateReview");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -123,8 +123,8 @@ public class ReviewsRatings(DataContext context) : IReviewsRatings
         }
         catch (Exception e)
         {
-            Log.Error("Error in DeleteReview");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in DeleteReview");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -150,8 +150,8 @@ public class ReviewsRatings(DataContext context) : IReviewsRatings
         }
         catch (Exception e)
         {
-            Log.Error("Error in  GetReviews");
-            return new Responce<List<GetReviewDto>>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in GetReviews");
+            return new Responce<List<GetReviewDto>>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -176,8 +176,8 @@ public class ReviewsRatings(DataContext context) : IReviewsRatings
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetAllReviews");
-            return new Responce<List<GetReviewDto>>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in GetAllReviews");
+            return new Responce<List<GetReviewDto>>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 }

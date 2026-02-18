@@ -1,6 +1,6 @@
-﻿using Domain.DTOs.OrderDto;
+using Domain.DTOs.OrderDto;
 using Domain.Filters;
-using Domain.Responces;
+using Domain.Responses;
 
 namespace Infrastructure.Interfaces;
 

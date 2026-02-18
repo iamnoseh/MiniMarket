@@ -1,8 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using Domain.DTOs.OrderDto;
 using Domain.Entities;
 using Domain.Filters;
-using Domain.Responces;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -44,8 +44,8 @@ public class OrderService(DataContext context): IOrderService
         }
         catch (Exception e)
         {
-            Log.Error("Error in CreateOrder");
-           return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in CreateOrder");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -72,8 +72,8 @@ public class OrderService(DataContext context): IOrderService
         }
         catch (Exception e)
         {
-            Log.Error("Error in UpdateStatusOrder");
-            return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in UpdateStatusOrder");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -138,8 +138,8 @@ public class OrderService(DataContext context): IOrderService
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetOrders");
-            return new PaginationResponce<List<GetOrderDto>>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in GetOrders");
+            return new PaginationResponce<List<GetOrderDto>>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
     public async Task<Responce<List<GetOrderDto>>> GetOrdersByUserId(int userId)
@@ -174,8 +174,8 @@ public class OrderService(DataContext context): IOrderService
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetOrdersByUserId");
-            return new Responce<List<GetOrderDto>>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in GetOrdersByUserId");
+            return new Responce<List<GetOrderDto>>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -210,8 +210,8 @@ public class OrderService(DataContext context): IOrderService
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetOrderById");
-            return new Responce<GetOrderDto>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in GetOrderById");
+            return new Responce<GetOrderDto>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 }

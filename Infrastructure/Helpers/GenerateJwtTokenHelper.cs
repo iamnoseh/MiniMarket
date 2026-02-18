@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Domain.Entities;
@@ -18,20 +18,21 @@ public static class GenerateJwtTokenHelper
         var issuer = jwtSection.GetValue<string>("Issuer");
         var audience = jwtSection.GetValue<string>("Audience");
         var secret = jwtSection.GetValue<string>("Key");
-        var expiresDay = 3;
+        var expiresDay = jwtSection.GetValue<int?>("ExpiresDay") ?? 3;
+
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
-            new("FullName", user.FullName),
-            new(JwtRegisteredClaimNames.Name, user.UserName),
-            new(JwtRegisteredClaimNames.Email, user.Email),
-            new(JwtRegisteredClaimNames.PhoneNumber, user.PhoneNumber)
+            new("FullName", user.FullName ?? string.Empty),
+            new(JwtRegisteredClaimNames.Name, user.UserName ?? string.Empty),
+            new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+            new(JwtRegisteredClaimNames.PhoneNumber, user.PhoneNumber ?? string.Empty)
         };
         
         var roles = await userManager.GetRolesAsync(user);
         foreach (var role in roles)
         {
-            claims.Add(new Claim("role", role));
+            claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));

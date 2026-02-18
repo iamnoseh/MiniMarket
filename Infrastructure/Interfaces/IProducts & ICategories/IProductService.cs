@@ -1,6 +1,6 @@
-﻿using Domain.DTOs.ProductDto;
+using Domain.DTOs.ProductDto;
 using Domain.Filters;
-using Domain.Responces;
+using Domain.Responses;
 
 namespace Infrastructure.Interfaces.IProducts___ICategories;
 

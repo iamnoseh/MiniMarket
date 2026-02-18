@@ -1,8 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using Domain.DTOs.OrderItemDto;
 using Domain.Entities;
 using Domain.Filters;
-using Domain.Responces;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -45,8 +45,8 @@ public class OrderItemService(DataContext context) : IOrderItemService
         }
         catch (Exception e)
         {
-            Log.Error("Error in CreateOrderItem");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in CreateOrderItem");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -74,8 +74,8 @@ public class OrderItemService(DataContext context) : IOrderItemService
         }
         catch (Exception e)
         {
-            Log.Error("Error in UpdateOrderItem");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in UpdateOrderItem");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -102,8 +102,8 @@ public class OrderItemService(DataContext context) : IOrderItemService
         }
         catch (Exception e)
         {
-            Log.Error("Error in DeleteOrderItem");
-            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in DeleteOrderItem");
+            return new Responce<string>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -128,8 +128,8 @@ public class OrderItemService(DataContext context) : IOrderItemService
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetOrderItem");
-            return new Responce<GetOrderItemDto>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in GetOrderItem");
+            return new Responce<GetOrderItemDto>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 
@@ -182,8 +182,8 @@ public class OrderItemService(DataContext context) : IOrderItemService
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetOrderItems");
-            return new PaginationResponce<List<GetOrderItemDto>>(HttpStatusCode.InternalServerError, e.Message);
+            Log.Error(e, "Error in GetOrderItems");
+            return new PaginationResponce<List<GetOrderItemDto>>(HttpStatusCode.InternalServerError, "Something went wrong");
         }
     }
 }

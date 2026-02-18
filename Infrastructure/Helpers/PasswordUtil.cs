@@ -1,30 +1,39 @@
-﻿namespace Infrastructure.Helpers;
+using System.Security.Cryptography;
 
-public  static class PasswordUtil
+namespace Infrastructure.Helpers;
+
+public static class PasswordUtil
 {
-    public static string GenerateRandomPassword(int length = 8)
+    public static string GenerateRandomPassword(int length = 12)
     {
-        const string upperChars = "ABCDEFG";
-        const string loweChars = "abcdefg";
-        const string numericChars = "1234567890";
-        const string specialChars = "-!?";
-
-        var random = new Random();
-        var chars = new List<char>();
-        chars.Add(upperChars[random.Next(upperChars.Length)]);
-        chars.Add(loweChars[random.Next(loweChars.Length)]);
-        chars.Add(numericChars[random.Next(numericChars.Length)]);
-        chars.Add(specialChars[random.Next(specialChars.Length)]);
-        for (int i = chars.Count; i < length; i++)
+        if (length < 4)
         {
-            var allChars = upperChars + loweChars + numericChars + specialChars;
-            chars.Add(allChars[random.Next(allChars.Length)]);
+            throw new ArgumentOutOfRangeException(nameof(length), "Password length must be at least 4 characters.");
         }
 
-        for (var i = chars.Count-1; i > 0; i--)
+        const string upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string lowerChars = "abcdefghijklmnopqrstuvwxyz";
+        const string numericChars = "0123456789";
+        const string specialChars = "-!?@#$%^&*";
+
+        var allChars = upperChars + lowerChars + numericChars + specialChars;
+        var chars = new List<char>(length)
         {
-            var swapIdex = random.Next(i + 1);
-            (chars[i], chars[swapIdex]) = (chars[swapIdex], chars[i]);
+            upperChars[RandomNumberGenerator.GetInt32(upperChars.Length)],
+            lowerChars[RandomNumberGenerator.GetInt32(lowerChars.Length)],
+            numericChars[RandomNumberGenerator.GetInt32(numericChars.Length)],
+            specialChars[RandomNumberGenerator.GetInt32(specialChars.Length)]
+        };
+
+        for (var i = chars.Count; i < length; i++)
+        {
+            chars.Add(allChars[RandomNumberGenerator.GetInt32(allChars.Length)]);
+        }
+
+        for (var i = chars.Count - 1; i > 0; i--)
+        {
+            var swapIndex = RandomNumberGenerator.GetInt32(i + 1);
+            (chars[i], chars[swapIndex]) = (chars[swapIndex], chars[i]);
         }
 
         return new string(chars.ToArray());

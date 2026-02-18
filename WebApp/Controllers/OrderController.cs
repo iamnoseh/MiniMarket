@@ -1,8 +1,9 @@
-﻿using Domain.DTOs.OrderDto;
+using Domain.DTOs.OrderDto;
 using Domain.Filters;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Extensions;
 
 namespace WebApp.Controllers;
 
@@ -15,7 +16,7 @@ public class OrderController(IOrderService service): Controller
     public async Task<IActionResult> CreateOrder( CreateOrderDto create)
     {
         var res =  await service.CreateOrder(create);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
     
     [HttpPut]
@@ -23,7 +24,7 @@ public class OrderController(IOrderService service): Controller
     public async Task<IActionResult> UpdateOrder(UpdateOrderDto dto)
     {
         var res = await service.UpdateStatusOrder(dto);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
     
     [HttpGet]
@@ -31,7 +32,7 @@ public class OrderController(IOrderService service): Controller
     public async Task<IActionResult> GetOrders([FromQuery]OrderFilter filter)
     {
         var res =  await service.GetOrders(filter);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
     [HttpGet("api/User/{GetUser}")]
@@ -39,7 +40,7 @@ public class OrderController(IOrderService service): Controller
     public async Task<IActionResult> GetOrders(int userId)
     {
         var res = await service.GetOrdersByUserId(userId);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
     [HttpGet("api/orders/ById")]
@@ -47,7 +48,7 @@ public class OrderController(IOrderService service): Controller
     public async Task<IActionResult> GetOrder(int id)
     {
         var res = await service.GetOrderById(id);
-        return Ok(res);
+        return this.ToActionResult(res);
     }
 
 }
