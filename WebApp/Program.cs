@@ -47,13 +47,19 @@ builder.Services.AddEndpointsApiExplorer();
 // ✅ CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["*"];
+        if (allowedOrigins.Contains("*")) policy.AllowAnyOrigin();
+        else policy.WithOrigins(allowedOrigins);
+        policy.AllowAnyMethod().AllowAnyHeader();
     });
 });
 
 var app = builder.Build();
+
+// ✅ Global Error Handling
+app.UseMiddleware<WebApp.Middlewares.ExceptionMiddleware>();
 
 // ✅ Swagger — ҳамеша фаъол бошад
 app.UseSwagger();
@@ -64,7 +70,7 @@ app.UseSwaggerUI(c =>
 });
 
 // ✅ Order of middlewares
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -21,17 +21,17 @@ public static class GenerateJwtTokenHelper
         var expiresDay = 3;
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
-            new("FullName", user.FullName),
-            new(JwtRegisteredClaimNames.Name, user.UserName),
-            new(JwtRegisteredClaimNames.Email, user.Email),
-            new(JwtRegisteredClaimNames.PhoneNumber, user.PhoneNumber)
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.UserName),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.MobilePhone, user.PhoneNumber ?? ""),
+            new("FullName", user.FullName)
         };
         
         var roles = await userManager.GetRolesAsync(user);
         foreach (var role in roles)
         {
-            claims.Add(new Claim("role", role));
+            claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));

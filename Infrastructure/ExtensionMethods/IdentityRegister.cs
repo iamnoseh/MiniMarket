@@ -13,11 +13,11 @@ public static class IdentityRegister
             .AddIdentityCore<User>(opt =>
             {
                 opt.Password.RequiredLength = 8;
-                opt.Password.RequireNonAlphanumeric = false;
-                opt.Password.RequireUppercase = false;
-                opt.Password.RequireLowercase = false;
-                opt.Password.RequireDigit = false;
-                opt.User.RequireUniqueEmail = false;
+                opt.Password.RequireNonAlphanumeric = true;
+                opt.Password.RequireUppercase = true;
+                opt.Password.RequireLowercase = true;
+                opt.Password.RequireDigit = true;
+                opt.User.RequireUniqueEmail = true;
             })
             .AddRoles<IdentityRole<int>>()
             .AddEntityFrameworkStores<DataContext>()

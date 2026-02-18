@@ -5,6 +5,7 @@ using Domain.Responces;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Mapping;
 using Serilog;
 
 namespace Infrastructure.Services;
@@ -15,20 +16,21 @@ public class CategoryService(DataContext context) : ICategoryService
     {
         try
         {
-            Log.Information("Updating Category");
-            var update = await context.Categories.FirstOrDefaultAsync(c => c.Id == dto.Id);
+            Log.Information("Updating category {CategoryId}", dto.Id);
+            var update = await context.Categories.FirstOrDefaultAsync(c => c.Id == dto.Id && !c.IsDeleted);
             if(update ==  null) return new Responce<string>(HttpStatusCode.NotFound,"Category not found");
             update.Name = dto.Name;
             update.Description = dto.Description;
             update.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
+            if (res > 0) Log.Information("Category {CategoryId} updated", dto.Id);
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK,"Category updated")
-                : new Responce<string>(HttpStatusCode.NotFound,"Category not found");
+                : new Responce<string>(HttpStatusCode.BadRequest,"Category not updated");
         }
         catch (Exception e)
         {
-            Log.Error("Error updating Category");
+            Log.Error(e, "Error updating Category");
             return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -37,18 +39,24 @@ public class CategoryService(DataContext context) : ICategoryService
     {
         try
         {
-            Log.Information("Deleting Category");
-            var delete = await context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+            Log.Information("Deleting category {CategoryId}", id);
+            var delete = await context.Categories.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
             if(delete == null) return new Responce<string>(HttpStatusCode.NotFound,"Category not found");
-            context.Categories.Remove(delete);
+            
+            delete.IsDeleted = true;
+            delete.UpdatedAt = DateTime.UtcNow;
+
             var res = await context.SaveChangesAsync();
+            if (res > 0) Log.Information("Category {CategoryId} soft-deleted", id);
+            else Log.Error("Category {CategoryId} soft-delete failed", id);
+
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK,"Category deleted")
-                : new Responce<string>(HttpStatusCode.NotFound,"Category not found");
+                : new Responce<string>(HttpStatusCode.BadRequest,"Category could not be deleted");
         }
         catch (Exception e)
         {
-            Log.Error("Error deleting Category");
+            Log.Error(e, "Error deleting Category");
             return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -91,21 +99,17 @@ public class CategoryService(DataContext context) : ICategoryService
         try
         {
             Log.Information("Getting categories");
-            var categories = await context.Categories.ToListAsync();
+            var categories = await context.Categories
+                .Where(c => !c.IsDeleted)
+                .ToListAsync();
             if (categories.Count == 0) return new Responce<List<GetCategoryDto>>(HttpStatusCode.NotFound, "Category not found");
-            var dtos = categories.Select(c => new GetCategoryDto()
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt,
-            }).ToList();
+            
+            var dtos = categories.Select(c => c.ToDto()).ToList();
             return new Responce<List<GetCategoryDto>>(dtos);
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetCategory");
+            Log.Error(e, "Error in GetCategory");
             return new Responce<List<GetCategoryDto>>(HttpStatusCode.InternalServerError, e.Message);
         }
     }

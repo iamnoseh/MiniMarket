@@ -6,6 +6,8 @@ using Infrastructure.Data;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Extensions;
+using Infrastructure.Mapping;
 using Serilog;
 
 namespace Infrastructure.Services;
@@ -35,21 +37,16 @@ public class UserService(DataContext context,
             update.PhoneNumber = user.PhoneNumber;
             update.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
-            if (res > 0)
-            {
-                Log.Information("User updated");
-            }
-            else
-            {
-                Log.Fatal("Failed to update user");
-            }
+            if (res > 0) Log.Information("User {UserId} updated", user.Id);
+            else Log.Warning("User {UserId} update failed", user.Id);
+
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK, "User successfully updated")
                 : new Responce<string>(HttpStatusCode.NotFound, "User not update");
         }
         catch (Exception e)
         {
-            Log.Error("Error in UpdateUser");
+            Log.Error(e, "Error in UpdateUser");
             return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -58,26 +55,29 @@ public class UserService(DataContext context,
     {
         try
         {
-            Log.Information("Deleting user");
-            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
-            if(user == null) return new Responce<string>(HttpStatusCode.NotFound, "User not found");
+            Log.Information("Deleting user {UserId}", id);
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+            if (user == null) return new Responce<string>(HttpStatusCode.NotFound, "User not found");
+            
             user.IsDeleted = true;
+            user.UpdatedAt = DateTime.UtcNow;
+            
             var res = await context.SaveChangesAsync();
             if (res > 0)
             {
-                Log.Information("User deleted");
+                Log.Information("User {UserId} soft-deleted", id);
             }
             else
             {
-                Log.Fatal("Failed to delete user");
+                Log.Error("User {UserId} soft-delete failed", id);
             }
             return res > 0
-                ? new Responce<string>(HttpStatusCode.OK, "User successfully deleted")
-                : new Responce<string>(HttpStatusCode.NotFound, "User not deleted");
+                ? new Responce<string>(HttpStatusCode.OK, "User deleted")
+                : new Responce<string>(HttpStatusCode.BadRequest, "User could not be deleted");
         }
         catch (Exception e)
         {
-            Log.Error("Error in DeleteUser");
+            Log.Error(e, "Error in DeleteUser");
             return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -86,26 +86,15 @@ public class UserService(DataContext context,
     {
         try
         {
-            Log.Information("Getting user");
-            var get =  await context.Users.FirstOrDefaultAsync(x => x.Id == id);
-            if(get == null) return new Responce<GetUserDto>(HttpStatusCode.NotFound, "User not found");
-            var dto = new GetUserDto()
-            {
-                Id = get.Id,
-                FullName = get.FullName,
-                Email = get.Email,
-                Age = get.Age,
-                Address = get.Address,
-                PhoneNumber = get.PhoneNumber,
-                AvatarUrl = get.AvatarUrl,
-                CreatedAt = get.CreatedAt,
-                UpdatedAt = get.UpdatedAt
-            };
-            return new Responce<GetUserDto>(dto);
+            Log.Information("Getting user {UserId}", id);
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+            if (user == null) return new Responce<GetUserDto>(HttpStatusCode.NotFound, "User not found");
+            
+            return new Responce<GetUserDto>(user.ToDto());
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetUser");
+            Log.Error(e, "Error in GetUser");
             return new Responce<GetUserDto>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -115,7 +104,7 @@ public class UserService(DataContext context,
         try
         {
             Log.Information("Getting users");
-            var query = context.Users.AsQueryable();
+            var query = context.Users.Where(u => !u.IsDeleted).AsQueryable();
             if (!string.IsNullOrEmpty(filter.FullName))
             {
                 query = query.Where(x => x.FullName.Contains(filter.FullName));
@@ -142,27 +131,17 @@ public class UserService(DataContext context,
             }
 
             query = query.Where(x => x.IsDeleted == false);
-            var total =await query.CountAsync();
-            var skip = (filter.PageNumber - 1) * filter.PageSize;
-            var users = await query.Skip(skip).Take(filter.PageSize).ToListAsync();
-            if(users.Count == 0) return new PaginationResponce<List<GetUserDto>>(HttpStatusCode.OK,"Users not found");
-            var dtos = users.Select(x=> new GetUserDto()
-            {
-                Id = x.Id,
-                FullName = x.FullName,
-                Age = x.Age,
-                Address = x.Address,
-                Email = x.Email,
-                PhoneNumber = x.PhoneNumber,
-                CreatedAt = x.CreatedAt,
-                UpdatedAt = x.UpdatedAt,
-            }).ToList();
-            return new PaginationResponce<List<GetUserDto>>(dtos, total,filter.PageNumber, filter.PageSize);
+            var (users, total) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+            
+            if(users.Count == 0) return new PaginationResponce<List<GetUserDto>>(HttpStatusCode.OK, "Users not found");
+            
+            var dtos = users.Select(x => x.ToDto()).ToList();
+            return new PaginationResponce<List<GetUserDto>>(dtos, total, filter.PageNumber, filter.PageSize);
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetUsers");
-            return new PaginationResponce<List<GetUserDto>>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in GetUsers");
+            return new PaginationResponce<List<GetUserDto>>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
 }

@@ -7,6 +7,8 @@ using Infrastructure.Data;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Extensions;
+using Infrastructure.Mapping;
 using Serilog;
 
 namespace Infrastructure.Services;
@@ -39,21 +41,16 @@ public class ProductService(DataContext context,
             }
             await context.Products.AddAsync(newProduct);
             var res =  await context.SaveChangesAsync();
-            if (res > 0)
-            {
-                Log.Information("Product created");
-            }
-            else
-            {
-                Log.Fatal("Product not created");
-            }
+            if (res > 0) Log.Information("Product {ProductId} created", newProduct.Id);
+            else Log.Warning("Product creation failed");
+
             return res > 0
                 ? new Responce<string>(HttpStatusCode.Created,"Product created")
                 : new Responce<string>(HttpStatusCode.BadRequest,"Product not created");
         }
         catch (Exception e)
         {
-            Log.Error("Error in CreateProduct");
+            Log.Error(e, "Error in CreateProduct");
             return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
         }
     }
@@ -80,21 +77,16 @@ public class ProductService(DataContext context,
             product.CategoryId = update.CategoryId;
             product.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
-            if (res > 0)
-            {
-                Log.Information("Product updated");
-            }
-            else
-            {
-                Log.Fatal("Product not updated");
-            }
+            if (res > 0) Log.Information("Product {ProductId} updated", update.Id);
+            else Log.Warning("Product {ProductId} update failed", update.Id);
+
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK,"Product updated")
                 : new Responce<string>(HttpStatusCode.BadRequest,"Product not updated");
         }
         catch (Exception e)
         {
-            Log.Error("Error in UpdateProduct");
+            Log.Error(e, "Error in UpdateProduct");
             return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
         }
     }
@@ -103,27 +95,30 @@ public class ProductService(DataContext context,
     {
         try
         {
-            Log.Information("Deleting a product");
-            var product = await context.Products.FirstOrDefaultAsync(x => x.Id == id);
-            if (product == null) return new Responce<string>(HttpStatusCode.NotFound,"Product not found");
+            Log.Information("Deleting product {ProductId}", id);
+            var product = await context.Products.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+            if (product == null) return new Responce<string>(HttpStatusCode.NotFound, "Product not found");
+            
             product.IsDeleted = true;
+            product.UpdatedAt = DateTime.UtcNow;
+            
             var res = await context.SaveChangesAsync();
             if (res > 0)
             {
-                Log.Information("Product deleted");
+                Log.Information("Product {ProductId} soft-deleted", id);
             }
             else
             {
-                Log.Fatal("Product not deleted");
+                Log.Error("Product {ProductId} soft-delete failed", id);
             }
             return res > 0
-                ? new Responce<string>(HttpStatusCode.OK,"Product deleted")
-                : new Responce<string>(HttpStatusCode.BadRequest,"Product not deleted");
+                ? new Responce<string>(HttpStatusCode.OK, "Product deleted")
+                : new Responce<string>(HttpStatusCode.BadRequest, "Product could not be deleted");
         }
         catch (Exception e)
         {
-            Log.Error("Error in DeleteProduct");
-            return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in DeleteProduct");
+            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
 
@@ -131,32 +126,16 @@ public class ProductService(DataContext context,
     {
         try
         {
-            Log.Information("Getting a product");
             var product = await context.Products
                 .Include(x=>x.Brand)
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == false );
+                .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
             if (product == null) return new Responce<GetProductDto>(HttpStatusCode.NotFound,"Product not found");
-            var dto = new GetProductDto()
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                Quantity = product.Quantity,
-                CategoryId = product.CategoryId,
-                BrandName = product.Brand.Name,
-                AverageRating = product.AverageRating,
-                RatingCount = product.RatingCount,
-                ImageUrl = product.ImageUrl,
-                UpdatedAt = product.UpdatedAt,
-                CreatedAt = product.CreatedAt
-            };
             
-            return new Responce<GetProductDto>(dto);
+            return new Responce<GetProductDto>(product.ToDto());
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetProductById");
+            Log.Error(e, "Error in GetProductById");
             return new Responce<GetProductDto>(HttpStatusCode.InternalServerError,e.Message);
         }
     }
@@ -166,7 +145,7 @@ public class ProductService(DataContext context,
         try
         {
             Log.Information("Getting products");
-            var query = context.Products
+            var query = context.Products.Where(p => !p.IsDeleted)
                 .Include(x=>x.Brand)
                 .AsQueryable();
             if (filter.Id.HasValue)
@@ -209,30 +188,16 @@ public class ProductService(DataContext context,
                 query = query.Where(x => x.RatingCount == filter.RatingCount);
             }
             query = query.Where(x=> x.IsDeleted == false);
-            var total = await query.CountAsync();
-            var skip = (filter.PageNumber - 1) * filter.PageSize;
-            var products = await query.Skip(skip).Take(filter.PageSize).ToListAsync();
-            if(products.Count == 0) return new PaginationResponce<List<GetProductDto>>(HttpStatusCode.NotFound,"Product not found");
-            var dtos = products.Select(x => new GetProductDto()
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Description = x.Description,
-                Price = x.Price,
-                Quantity = x.Quantity,
-                CategoryId = x.CategoryId,
-                BrandName = x.Brand.Name,
-                AverageRating = x.AverageRating,
-                RatingCount = x.RatingCount,
-                ImageUrl = x.ImageUrl,
-                UpdatedAt = x.UpdatedAt,
-                CreatedAt = x.CreatedAt
-            }).ToList();
-            return new PaginationResponce<List<GetProductDto>>(dtos,total,filter.PageNumber,filter.PageSize);
+            var (products, total) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+            
+            if(products.Count == 0) return new PaginationResponce<List<GetProductDto>>(HttpStatusCode.NotFound, "Product not found");
+            
+            var dtos = products.Select(x => x.ToDto()).ToList();
+            return new PaginationResponce<List<GetProductDto>>(dtos, total, filter.PageNumber, filter.PageSize);
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetProducts");
+            Log.Error(e, "Error in GetProducts");
             return new PaginationResponce<List<GetProductDto>>(HttpStatusCode.InternalServerError,e.Message);
         }
     }

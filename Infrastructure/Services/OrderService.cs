@@ -7,26 +7,26 @@ using Domain.Responces;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Extensions;
+using Infrastructure.Mapping;
 using Serilog;
 
 namespace Infrastructure.Services;
 
 public class OrderService(DataContext context): IOrderService
 {
-    public async Task<Responce<string>> CreateOrder(CreateOrderDto create)
+    public async Task<Responce<string>> CreateOrder(CreateOrderDto create, int userId)
     {
         try
         {
             Log.Information("Creating order");
-            var cartItem =  context.CartItems
-                .Where(c => c.UserId == create.UserId);
             var cartItems = context.CartItems
-                .Where(c => c.UserId == create.UserId);
+                .Where(c => c.UserId == userId);
             
-            if(!cartItem.Any()) return new Responce<string>(HttpStatusCode.BadRequest,"CartItems not found");
+            if(!cartItems.Any()) return new Responce<string>(HttpStatusCode.BadRequest,"CartItems not found");
             var order = new Order()
             {
-                UserId = create.UserId,
+                UserId = userId,
                 OrderDate = DateTime.UtcNow,
                 Status = create.Status,
                 Address = create.Address,
@@ -35,21 +35,16 @@ public class OrderService(DataContext context): IOrderService
             };
             await context.Orders.AddAsync(order);
             var res = await context.SaveChangesAsync();
-            if (res > 0)
-            {
-                Log.Information("Order created");
-            }
-            else
-            {
-                Log.Fatal("Order create failed");
-            }
+            if (res > 0) Log.Information("Order created for user {UserId}", userId);
+            else Log.Warning("Order creation failed for user {UserId}", userId);
+
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK,"Order created")
                 : new Responce<string>(HttpStatusCode.BadRequest,"Order could not be created");
         }
         catch (Exception e)
         {
-            Log.Error("Error in CreateOrder");
+            Log.Error(e, "Error in CreateOrder");
            return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
         }
     }
@@ -64,22 +59,43 @@ public class OrderService(DataContext context): IOrderService
             update1.Status = update.Status;
             update1.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
-            if (res > 0)
-            { 
-                Log.Information("Order updated");
-            }
-            else
-            {
-                Log.Fatal("Order update failed");
-            }
+            if (res > 0) Log.Information("Order {OrderId} status updated to {Status}", update.Id, update.Status);
+            else Log.Warning("Order {OrderId} status update failed", update.Id);
+
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK, "Order updated")
                 : new Responce<string>(HttpStatusCode.BadRequest, "Order could not be updated");
         }
         catch (Exception e)
         {
-            Log.Error("Error in UpdateStatusOrder");
-            return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in UpdateStatusOrder");
+            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
+        }
+    }
+
+    public async Task<Responce<string>> DeleteOrder(int id)
+    {
+        try
+        {
+            Log.Information("Deleting order {OrderId}", id);
+            var order = await context.Orders.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+            if (order == null) return new Responce<string>(HttpStatusCode.NotFound, "Order not found");
+            
+            order.IsDeleted = true;
+            order.UpdatedAt = DateTime.UtcNow;
+            
+            var res = await context.SaveChangesAsync();
+            if (res > 0) Log.Information("Order {OrderId} soft-deleted", id);
+            else Log.Error("Order {OrderId} soft-delete failed", id);
+
+            return res > 0
+                ? new Responce<string>(HttpStatusCode.OK, "Order deleted")
+                : new Responce<string>(HttpStatusCode.BadRequest, "Order could not be deleted");
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Error in DeleteOrder");
+            return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
 
@@ -88,7 +104,11 @@ public class OrderService(DataContext context): IOrderService
         try
         {
             Log.Information("Getting orders");
-            var query = context.Orders.AsQueryable();
+            var query = context.Orders
+                .Where(o => !o.IsDeleted)
+                .Include(x => x.OrderItems!)
+                .ThenInclude(x => x.Product)
+                .AsQueryable();
             if (filter.Id.HasValue)
             {
                 query = query.Where(x => x.Id == filter.Id);
@@ -119,28 +139,17 @@ public class OrderService(DataContext context): IOrderService
                 query = query.Where(x => x.Status == filter.Status);
             }
 
-            var total = await query.CountAsync();
-            var skip = (filter.PageNumber -1) * filter.PageSize;
-            var orders = await query.Skip(skip).Take(filter.PageSize).ToListAsync();
-            if(orders.Count == 0) return new PaginationResponce<List<GetOrderDto>>(HttpStatusCode.NotFound,"Order not found");
-            var dtos = orders.Select(x=>  new GetOrderDto()
-            {
-                Id = x.Id,
-                UserId = x.UserId,
-                Address = x.Address,
-                PaymentMethod = x.PaymentMethod,
-                Status = x.Status,
-                TotalAmount = x.TotalAmount,
-                OrderDate = x.OrderDate,
-                CreatedAt = x.CreatedAt,
-                UpdatedAt = x.UpdatedAt,
-            }).ToList();
+            var (orders, total) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+            
+            if(orders.Count == 0) return new PaginationResponce<List<GetOrderDto>>(HttpStatusCode.NotFound, "Order not found");
+            
+            var dtos = orders.Select(x => x.ToDto()).ToList();
             return new PaginationResponce<List<GetOrderDto>>(dtos, total, filter.PageNumber, filter.PageSize);
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetOrders");
-            return new PaginationResponce<List<GetOrderDto>>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in GetOrders");
+            return new PaginationResponce<List<GetOrderDto>>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
     public async Task<Responce<List<GetOrderDto>>> GetOrdersByUserId(int userId)
@@ -149,36 +158,19 @@ public class OrderService(DataContext context): IOrderService
         {
             Log.Information("Getting orders");
             var orders = await context.Orders
+                .Where(o => !o.IsDeleted)
                 .Include(o=>o.OrderItems)
+                .ThenInclude(x => x.Product)
                 .Where(o=> o.UserId == userId)
                 .ToListAsync();
             if(orders.Count == 0) return new Responce<List<GetOrderDto>>(HttpStatusCode.NotFound,"Orders not found");
-            var dtos = orders.Select(x=>  new GetOrderDto()
-            {
-                Id = x.Id,
-                UserId = x.UserId,
-                Address = x.Address,
-                PaymentMethod = x.PaymentMethod,
-                Status = x.Status,
-                TotalAmount = x.OrderItems.Sum(oi => oi.Price),
-                OrderItems = x.OrderItems.Select(oi => new GetOrderItemDto()
-                {
-                    Id = oi.Id,
-                    OrderId = oi.OrderId,
-                    ProductId = oi.ProductId,
-                    Quantity = oi.Quantity,
-                    Price = oi.Price,
-                }).ToList(),
-                OrderDate = x.OrderDate,
-                CreatedAt = x.CreatedAt,
-                UpdatedAt = x.UpdatedAt,
-            }).ToList();
+            var dtos = orders.Select(x => x.ToDto()).ToList();
             return new Responce<List<GetOrderDto>>(dtos);
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetOrdersByUserId");
-            return new Responce<List<GetOrderDto>>(HttpStatusCode.InternalServerError,e.Message);
+            Log.Error(e, "Error in GetOrdersByUserId");
+            return new Responce<List<GetOrderDto>>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
 
@@ -186,36 +178,19 @@ public class OrderService(DataContext context): IOrderService
     {
         try
         {
-            Log.Information("Getting order");
+            Log.Information("Getting order {OrderId}", id);
             var  order = await context.Orders
+                .Where(o => !o.IsDeleted)
                 .Include(o => o.OrderItems)
+                .ThenInclude(x => x.Product)
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (order == null) return new Responce<GetOrderDto>(HttpStatusCode.NotFound, "Order not found");
-            var dto = new GetOrderDto()
-            {
-                Id = order.Id,
-                UserId = order.UserId,
-                Address = order.Address,
-                PaymentMethod = order.PaymentMethod,
-                Status = order.Status,
-                TotalAmount = order.OrderItems.Sum(oi => oi.Price),
-                OrderItems = order.OrderItems.Select(oi => new GetOrderItemDto()
-                {
-                    Id = oi.Id,
-                    OrderId = oi.OrderId,
-                    ProductId = oi.ProductId,
-                    Quantity = oi.Quantity,
-                    Price = oi.Price,
-                }).ToList(),
-                OrderDate = order.OrderDate,
-                CreatedAt = order.CreatedAt,
-                UpdatedAt = order.UpdatedAt,
-            };
-            return new Responce<GetOrderDto>(dto);
+            
+            return new Responce<GetOrderDto>(order.ToDto());
         }
         catch (Exception e)
         {
-            Log.Error("Error in GetOrderById");
+            Log.Error(e, "Error in GetOrderById");
             return new Responce<GetOrderDto>(HttpStatusCode.InternalServerError,e.Message);
         }
     }

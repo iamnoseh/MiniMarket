@@ -5,6 +5,8 @@ using Domain.Responces;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Mapping;
+using Serilog;
 
 namespace Infrastructure.Services;
 
@@ -36,17 +38,20 @@ public class BrandService(DataContext context) : IBrandService
     {
         try
         {
-            var brand = await context.Brands.FirstOrDefaultAsync(x=> x.Id == dto.Id);
+            Log.Information("Updating brand {BrandId}", dto.Id);
+            var brand = await context.Brands.FirstOrDefaultAsync(x=> x.Id == dto.Id && !x.IsDeleted);
             if (brand == null) return new Responce<string>(HttpStatusCode.NotFound, "Brand not found");
             brand.Name = dto.Name;
             brand.UpdatedAt = DateTime.UtcNow;
             var res = await context.SaveChangesAsync();
+            if (res > 0) Log.Information("Brand {BrandId} updated", dto.Id);
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK, "Brand successfully updated")
                 : new Responce<string>(HttpStatusCode.BadRequest, "Brand not updated");
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error updating Brand");
             return new Responce<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -55,16 +60,24 @@ public class BrandService(DataContext context) : IBrandService
     {
         try
         {
-            var brand = await context.Brands.FirstOrDefaultAsync(x => x.Id == id);
+            Log.Information("Deleting brand {BrandId}", id);
+            var brand = await context.Brands.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
             if (brand == null) return new Responce<string>(HttpStatusCode.NotFound, "Brand not found");
-            context.Brands.Remove(brand);
+            
+            brand.IsDeleted = true;
+            brand.UpdatedAt = DateTime.UtcNow;
+
             var res = await context.SaveChangesAsync();
+            if (res > 0) Log.Information("Brand {BrandId} soft-deleted", id);
+            else Log.Error("Brand {BrandId} soft-delete failed", id);
+
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK, "Brand successfully deleted")
                 : new Responce<string>(HttpStatusCode.BadRequest, "Brand not deleted");
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error deleting Brand");
             return new Responce<string>(HttpStatusCode.InternalServerError,e.Message);
         }
     }
@@ -73,19 +86,15 @@ public class BrandService(DataContext context) : IBrandService
     {
         try
         {
-            var brand = await context.Brands.FirstOrDefaultAsync(x => x.Id == id);
+            Log.Information("Getting brand {BrandId}", id);
+            var brand = await context.Brands.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
             if (brand == null) return new Responce<GetBrandDto>(HttpStatusCode.NotFound, "Brand not found");
-            var dto = new GetBrandDto()
-            {
-                Id = brand.Id,
-                Name = brand.Name,
-                CreatedAt = brand.CreatedAt,
-                UpdatedAt = brand.UpdatedAt
-            };
-            return new Responce<GetBrandDto>(dto);
+            
+            return new Responce<GetBrandDto>(brand.ToDto());
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error getting Brand");
             return new Responce<GetBrandDto>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -94,19 +103,18 @@ public class BrandService(DataContext context) : IBrandService
     {
         try
         {
-            var brands = await context.Brands.ToListAsync();
+            Log.Information("Getting brands");
+            var brands = await context.Brands
+                .Where(b => !b.IsDeleted)
+                .ToListAsync();
             if(brands.Count == 0)  return new Responce<List<GetBrandDto>>(HttpStatusCode.NotFound,"Brands not found");
-            var dtos = brands.Select(x => new GetBrandDto()
-            {
-                Id = x.Id,
-                Name = x.Name,
-                CreatedAt = x.CreatedAt,
-                UpdatedAt = x.UpdatedAt
-            }).ToList();
+            
+            var dtos = brands.Select(x => x.ToDto()).ToList();
             return new Responce<List<GetBrandDto>>(dtos);
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error getting Brands");
             return new Responce<List<GetBrandDto>>(HttpStatusCode.InternalServerError,e.Message);
         }
     }

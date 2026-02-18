@@ -6,7 +6,7 @@ namespace Infrastructure.Interfaces;
 
 public interface IOrderService
 {
-    Task<Responce<string>> CreateOrder(CreateOrderDto create);
+    Task<Responce<string>> CreateOrder(CreateOrderDto create, int userId);
     Task<Responce<string>> UpdateStatusOrder(UpdateOrderDto update);
     Task<PaginationResponce<List<GetOrderDto>>> GetOrders(OrderFilter filter);
     Task<Responce<List<GetOrderDto>>> GetOrdersByUserId(int userId);

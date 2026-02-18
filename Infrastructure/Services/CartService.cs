@@ -11,20 +11,13 @@ using Serilog;
 
 namespace Infrastructure.Services;
 
-public class CartService(DataContext context,
-    IHttpContextAccessor httpContextAccessor) : ICartService
+public class CartService(DataContext context) : ICartService
 {
-   public async Task<Responce<string>> AddToCart(CreateCartItemDto create)
+   public async Task<Responce<string>> AddToCart(CreateCartItemDto create, int userId)
 {
     try
     {
-        Log.Information("Adding to cart");
-        var userClaims = httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value
-                         ?? httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (!int.TryParse(userClaims, out var userId))
-            return new Responce<string>(HttpStatusCode.Unauthorized, "User is not authorized");
-
+        Log.Information("Adding product {ProductId} to cart for user {UserId}", create.ProductId, userId);
         if (create.Quantity < 1)
             return new Responce<string>(HttpStatusCode.BadRequest, "Quantity must be greater than 0");
         
@@ -63,16 +56,11 @@ public class CartService(DataContext context,
     }
 }
 
-    public async Task<Responce<string>> UpdateCart(UpdateCartItemDto update)
+    public async Task<Responce<string>> UpdateCart(UpdateCartItemDto update, int userId)
     {
         try
         {
-            Log.Information("Updating cart");
-            var userClaims = httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value
-                             ?? httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (!int.TryParse(userClaims, out var userId))
-                return new Responce<string>(HttpStatusCode.Unauthorized, "User is not authorized");
+            Log.Information("Updating product {ProductId} in cart for user {UserId}", update.ProductId, userId);
             
             var updatedCart = await context.CartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == update.ProductId);
             if (updatedCart == null) return new Responce<string>(HttpStatusCode.NotFound, "CartItem not found");
@@ -98,16 +86,11 @@ public class CartService(DataContext context,
         }
     }
 
-    public async Task<Responce<string>> DeleteCart(int id)
+    public async Task<Responce<string>> DeleteCart(int id, int userId)
     {
         try
         {
-            Log.Information("Deleting cart");
-            var userClaims = httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value
-                             ?? httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (!int.TryParse(userClaims, out var userId))
-                return new Responce<string>(HttpStatusCode.Unauthorized, "User is not authorized");
+            Log.Information("Deleting cart item {Id} for user {UserId}", id, userId);
             
             var deletedCart = await context.CartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == id);
             
@@ -133,16 +116,11 @@ public class CartService(DataContext context,
         }
     }
 
-    public async Task<Responce<List<GetCartItemDto>>> GetCartItem()
+    public async Task<Responce<List<GetCartItemDto>>> GetCartItem(int userId)
     {
         try
         {
-            Log.Information("Getting cart");
-            var userClaims = httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value
-                             ?? httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (!int.TryParse(userClaims, out var userId))
-                return new Responce<List<GetCartItemDto>>(HttpStatusCode.Unauthorized, "User is not authorized");
+            Log.Information("Getting cart for user {UserId}", userId);
             
             var cartItems = await context.CartItems
                 .Where(x => x.UserId == userId)
