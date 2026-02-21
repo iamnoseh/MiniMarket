@@ -13,20 +13,20 @@ public static class Seed
         {
             await roleManager.CreateAsync(new IdentityRole<int>("Admin"));
         }
-        var user = userManager.Users.FirstOrDefault(x=> x.UserName == "Admin");
+        var user = userManager.Users.FirstOrDefault(x=> x.UserName == "Admin1");
         if (user == null)
         {
             var newUser = new User()
             {
                 FullName = "Admin",
-                UserName = "Admin",
+                UserName = "Admin1",
                 Address = "Dushanbe",
-                Email = "admin@gmail.com",
+                Email = "admin1@gmail.com",
                 PhoneNumber = "987654321",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
             };
-            var res = userManager.CreateAsync(newUser, "zxcv0987?");
+            var res = userManager.CreateAsync(newUser, "Admin123@");
             if (res.Result.Succeeded)
             {
                 await userManager.AddToRoleAsync(newUser, Role.Admin.ToString());
