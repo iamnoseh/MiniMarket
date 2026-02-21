@@ -21,7 +21,8 @@ public class FileStorage(string rootPath) : IFileStorage
             await file.CopyToAsync(stream);
             
             Log.Information("File {FileName} saved to {Folder}", fileName, relativeFolder);
-            return Path.Combine(relativeFolder, fileName).Replace("\\", "/");
+            var resultPath = Path.Combine(relativeFolder, fileName).Replace("\\", "/");
+            return resultPath.StartsWith("/") ? resultPath : "/" + resultPath;
         }
         catch (Exception e)
         {
