@@ -60,6 +60,11 @@ namespace Infrastructure.Services
                 return new Responce<string>("Customer created and email sent");
 
             }
+            catch (ArgumentException e)
+            {
+                Log.Warning(e, "Invalid profile image upload");
+                return new Responce<string>(HttpStatusCode.BadRequest, e.Message);
+            }
             catch (Exception e)
             {
                 Log.Error(e, "Error in Register");

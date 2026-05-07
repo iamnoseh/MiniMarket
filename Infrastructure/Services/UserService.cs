@@ -42,6 +42,11 @@ public class UserService(DataContext context,
                 ? new Responce<string>(HttpStatusCode.OK, "User successfully updated")
                 : new Responce<string>(HttpStatusCode.NotFound, "User not update");
         }
+        catch (ArgumentException e)
+        {
+            Log.Warning(e, "Invalid user avatar upload");
+            return new Responce<string>(HttpStatusCode.BadRequest, e.Message);
+        }
         catch (Exception e)
         {
             Log.Error(e, "Error in UpdateUser");
