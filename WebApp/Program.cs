@@ -29,12 +29,10 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .CreateLogger();
 
-// ✅ Database
 builder.Services.AddDbContext<DataContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<DataContext>();
 
-// ✅ Services
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -47,7 +45,6 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFileStorage>(sp => new FileStorage(builder.Environment.ContentRootPath));
 builder.Services.AddHttpContextAccessor();
 
-// ✅ Identity
 builder.Services
     .AddIdentityCore<User>(opt =>
     {
@@ -64,7 +61,6 @@ builder.Services
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 
-// ✅ Swagger configuration (бо JWT auth)
 builder.Services.AddSwaggerGen(opt =>
 {
     opt.SwaggerDoc("v1", new() { Title = "Market API", Version = "v1" });
@@ -90,7 +86,6 @@ builder.Services.AddSwaggerGen(opt =>
     });
 });
 
-// ✅ JWT Auth
 var jwt = builder.Configuration.GetSection("JWT");
 var jwtKey = jwt["Key"];
 var jwtIssuer = jwt["Issuer"];
@@ -131,7 +126,6 @@ builder.Services.AddAuthorization(opt => opt.AddPolicy("AdminOnly", p => p.Requi
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// ✅ CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultCors", policy =>
@@ -157,15 +151,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ✅ Swagger — ҳамеша фаъол бошад
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Market API v1");
-    c.RoutePrefix = "swagger"; // URL: /swagger/index.html
+    c.RoutePrefix = "swagger";
 });
 
-// ✅ Order of middlewares
 app.UseCors("DefaultCors");
 app.UseAuthentication();
 app.UseAuthorization();
