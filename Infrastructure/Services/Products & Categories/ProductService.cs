@@ -50,6 +50,11 @@ public class ProductService(DataContext context,
                 ? new Responce<string>(HttpStatusCode.Created,"Product created")
                 : new Responce<string>(HttpStatusCode.BadRequest,"Product not created");
         }
+        catch (ArgumentException e)
+        {
+            Log.Warning(e, "Invalid product image upload");
+            return new Responce<string>(HttpStatusCode.BadRequest, e.Message);
+        }
         catch (Exception e)
         {
             Log.Error(e, "Error in CreateProduct");
@@ -87,6 +92,11 @@ public class ProductService(DataContext context,
             return res > 0
                 ? new Responce<string>(HttpStatusCode.OK,"Product updated")
                 : new Responce<string>(HttpStatusCode.BadRequest,"Product not updated");
+        }
+        catch (ArgumentException e)
+        {
+            Log.Warning(e, "Invalid product image upload");
+            return new Responce<string>(HttpStatusCode.BadRequest, e.Message);
         }
         catch (Exception e)
         {

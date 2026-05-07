@@ -6,7 +6,7 @@ namespace Infrastructure.FileStorage;
 public class LocalImageStorageService : IImageStorageService
 {
     private static readonly string[] AllowedImageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
-    private const long MaxFileSizeBytes = 50 * 1024 * 1024;
+    private const long MaxFileSizeBytes = 5 * 1024 * 1024;
     private readonly string _webRootPath;
     private readonly string _uploadsRootPath;
 
