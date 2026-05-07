@@ -19,7 +19,7 @@ namespace Infrastructure.Services
         IHttpContextAccessor httpContextAccessor,
         IConfiguration configuration,
         IEmailService emailService,
-        IFileStorage file) : IAccountService
+        IImageStorageService imageStorage) : IAccountService
     {
         public async Task<Responce<string>> Register(Register register)
         {
@@ -43,7 +43,7 @@ namespace Infrastructure.Services
                 };
                 if (register.ProfileImage != null)
                 {
-                    user.AvatarUrl = await file.SaveFile(register.ProfileImage, "UserAvatar");
+                    user.AvatarUrl = await imageStorage.SaveAsync(register.ProfileImage, "UserAvatar");
                 }
                 var password = PasswordUtil.GenerateRandomPassword();
                 var result = await userManager.CreateAsync(user, password);

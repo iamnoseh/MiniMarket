@@ -12,7 +12,7 @@ using Serilog;
 namespace Infrastructure.Services.Products___Categories;
 
 public class ProductService(DataContext context, 
-    IFileStorage file) : IProductService
+    IImageStorageService imageStorage) : IProductService
 {
     public async Task<Responce<string>> CreateProduct(CreateProductDto create)
     {
@@ -34,7 +34,7 @@ public class ProductService(DataContext context,
             };
             if (create.ImageUrl != null)
             {
-                newProduct.ImageUrl = await file.SaveFile(create.ImageUrl,"Image");
+                newProduct.ImageUrl = await imageStorage.SaveAsync(create.ImageUrl, "Image");
             }
             await context.Products.AddAsync(newProduct);
             var res =  await context.SaveChangesAsync();
@@ -66,11 +66,7 @@ public class ProductService(DataContext context,
             if (product == null) return new Responce<string>(HttpStatusCode.NotFound,"Product not found");
             if (update.ImageUrl != null)
             {
-                if (!string.IsNullOrEmpty(product.ImageUrl))
-                {
-                    await file.DeleteFile(product.ImageUrl);         
-                }
-                product.ImageUrl = await file.SaveFile(update.ImageUrl!,"Image");
+                product.ImageUrl = await imageStorage.ReplaceAsync(product.ImageUrl, update.ImageUrl, "Image");
             }
             product.Name = update.Name;
             product.Description = update.Description;
@@ -106,6 +102,8 @@ public class ProductService(DataContext context,
             Log.Information("Deleting a product");
             var product = await context.Products.FirstOrDefaultAsync(x => x.Id == id);
             if (product == null) return new Responce<string>(HttpStatusCode.NotFound,"Product not found");
+            await imageStorage.DeleteAsync(product.ImageUrl);
+            product.ImageUrl = null;
             product.IsDeleted = true;
             var res = await context.SaveChangesAsync();
             if (res > 0)
@@ -145,7 +143,7 @@ public class ProductService(DataContext context,
                 CategoryId = product.CategoryId,
                 AverageRating = product.AverageRating,
                 RatingCount = product.RatingCount,
-                ImageUrl = product.ImageUrl,
+                ImageUrl = imageStorage.NormalizeImageUrl(product.ImageUrl),
                 UpdatedAt = product.UpdatedAt,
                 CreatedAt = product.CreatedAt
             };
@@ -219,7 +217,7 @@ public class ProductService(DataContext context,
                 CategoryId = x.CategoryId,
                 AverageRating = x.AverageRating,
                 RatingCount = x.RatingCount,
-                ImageUrl = x.ImageUrl,
+                ImageUrl = imageStorage.NormalizeImageUrl(x.ImageUrl),
                 UpdatedAt = x.UpdatedAt,
                 CreatedAt = x.CreatedAt
             }).ToList();

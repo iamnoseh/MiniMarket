@@ -11,7 +11,7 @@ using Serilog;
 namespace Infrastructure.Services;
 
 public class UserService(DataContext context,
-    IFileStorage file) : IUserService
+    IImageStorageService imageStorage) : IUserService
 {
     public async Task<Responce<string>> UpdateUser(UpdateUserDto user)
     {
@@ -22,11 +22,7 @@ public class UserService(DataContext context,
             if(update == null) return new Responce<string>(HttpStatusCode.NotFound, "User not found");
             if (user.AvatarUrl != null)
             {
-                if (!string.IsNullOrEmpty(update.AvatarUrl))
-                {
-                    await file.DeleteFile(update.AvatarUrl);
-                }
-                await file.SaveFile(user.AvatarUrl, "UserAvatar");
+                update.AvatarUrl = await imageStorage.ReplaceAsync(update.AvatarUrl, user.AvatarUrl, "UserAvatar");
             }
             update.FullName = user.FullName;
             update.Email = user.Email;
@@ -60,6 +56,8 @@ public class UserService(DataContext context,
             Log.Information("Deleting user");
             var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
             if(user == null) return new Responce<string>(HttpStatusCode.NotFound, "User not found");
+            await imageStorage.DeleteAsync(user.AvatarUrl);
+            user.AvatarUrl = null;
             user.IsDeleted = true;
             var res = await context.SaveChangesAsync();
             if (res > 0)
@@ -96,7 +94,7 @@ public class UserService(DataContext context,
                 Age = get.Age,
                 Address = get.Address,
                 PhoneNumber = get.PhoneNumber,
-                AvatarUrl = get.AvatarUrl,
+                AvatarUrl = imageStorage.NormalizeImageUrl(get.AvatarUrl),
                 CreatedAt = get.CreatedAt,
                 UpdatedAt = get.UpdatedAt
             };
@@ -153,6 +151,7 @@ public class UserService(DataContext context,
                 Address = x.Address,
                 Email = x.Email,
                 PhoneNumber = x.PhoneNumber,
+                AvatarUrl = imageStorage.NormalizeImageUrl(x.AvatarUrl),
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt,
             }).ToList();

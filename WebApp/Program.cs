@@ -20,7 +20,6 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 var env = builder.Environment;
 
-// ✅ Serilog Configuration
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Debug)
     .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day,
@@ -42,7 +41,8 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<IReviewsRatings, ReviewsRatings>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IFileStorage>(sp => new FileStorage(builder.Environment.ContentRootPath));
+builder.Services.AddScoped<IImageStorageService>(_ => new LocalImageStorageService(builder.Environment.ContentRootPath));
+builder.Services.AddScoped<IFileStorage, FileStorage>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services
@@ -158,6 +158,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
+app.UseStaticFiles();
 app.UseCors("DefaultCors");
 app.UseAuthentication();
 app.UseAuthorization();
