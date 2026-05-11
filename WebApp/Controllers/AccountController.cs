@@ -13,6 +13,8 @@ public class AccountController(IAccountService service) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromForm] Register request)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         var res = await service.Register(request);
         return this.ToActionResult(res);
     }
