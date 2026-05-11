@@ -49,7 +49,10 @@ namespace Infrastructure.Services
                 var result = await userManager.CreateAsync(user, password);
                 await userManager.AddToRoleAsync(user, "Customer");
                 if (!result.Succeeded)
-                    return new Responce<string>(HttpStatusCode.BadRequest, "Something went wrong");
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return new Responce<string>(HttpStatusCode.BadRequest, errors);
+                }
                 await emailService.SendEmail(new SendEmail
                 {
                     To = user.Email,
