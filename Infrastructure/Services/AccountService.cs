@@ -45,22 +45,15 @@ namespace Infrastructure.Services
                 {
                     user.AvatarUrl = await imageStorage.SaveAsync(register.ProfileImage, "UserAvatar");
                 }
-                var password = PasswordUtil.GenerateRandomPassword();
-                var result = await userManager.CreateAsync(user, password);
+                var result = await userManager.CreateAsync(user, register.Password);
                 await userManager.AddToRoleAsync(user, "Customer");
                 if (!result.Succeeded)
                 {
                     var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                     return new Responce<string>(HttpStatusCode.BadRequest, errors);
                 }
-                await emailService.SendEmail(new SendEmail
-                {
-                    To = user.Email,
-                    Subject = "Welcome to the ByteBazaar",
-                    Body =
-                        $"<p>Салом {user.FullName}!</p><br>Логини шумо {user.UserName}<br>Пароли шумо:{password}</p>"
-                });
-                return new Responce<string>("Customer created and email sent");
+                
+                return new Responce<string>("Customer created successfully");
 
             }
             catch (ArgumentException e)

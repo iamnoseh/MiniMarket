@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 
 namespace Domain.DTOs.Account;
@@ -22,4 +22,14 @@ public class Register
     [Range(13,100, ErrorMessage = "Age must be between 13 and 100")]
     public required int Age { get; set; }
     public IFormFile? ProfileImage { get; set; }
+    
+    [Required]
+    [DataType(DataType.Password)]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters")]
+    public required string Password { get; set; }
+    
+    [Required]
+    [DataType(DataType.Password)]
+    [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+    public required string ConfirmPassword { get; set; }
 }
